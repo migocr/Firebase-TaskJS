@@ -113,22 +113,38 @@ const getTask = (id) => db.collection("users").doc(id).get();
 const updateTask = (id, updatedTask) => db.collection('users').doc(id).update(updatedTask);
 
 //filtro por tareas completadas o no completadas
-document.getElementById("dropdown-menu").addEventListener("click", function(e){
-  let filtro = e.target.id;
-  console.log(filtro);
-  auth.onAuthStateChanged((user) => {
-  if (user) {
-    console.log(user.email)
-    setupPosts(true,user.email,filtro)
-  } else {
-    console.log("error de inicio de sesion")
-    }
-  });
-})
+
+txt = document.getElementById("txt");
+const filterMenu = document.getElementById("filter-menu");
+
+const filterButtonText = filterMenu.querySelectorAll(".dropdown-toggle");
+console.log(filterButtonText)
+
+const filterOptions = filterMenu.querySelectorAll(".dropdown-item");
+    filterOptions.forEach((filterdata) =>
+      filterdata.addEventListener("click", async (e) => {
+        let filtro = e.target.id;
+        let menuSelected = e.target.getAttribute("data-menu");
+        console.log();
+
+        auth.onAuthStateChanged((user) => {
+        
+        
+        if (user) {
+          console.log(user.email)
+          setupPosts(true,user.email,filtro)
+          filterButtonText[parseInt(menuSelected)].innerHTML=`${e.target.text}`;
+        } else {
+          console.log("error de inicio de sesion")
+          }
+        });
+      }));
+
+
 
 
 const setupPosts = async(e,email,filter) => {
-  console.log(e);
+  //console.log(e);
   onGetTasks((querySnapshot) => {
     tasksContainer.innerHTML = "";
     var tareasDelUsuario = [];
@@ -429,31 +445,35 @@ signUpForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const email = signUpForm["signup-email"].value;
   const password = signUpForm["signup-password"].value;
-
+  let date = new Date(Date.now() + 1000 /*sec*/ * 60 /*min*/ * 60 /*hour*/ * 24 /*day*/ * 10)
   // Authenticate the User
   auth
     .createUserWithEmailAndPassword(email, password)
     .then((userCredential) => {
       // clear the form
       signUpForm.reset();
-      let date = new Date();
-      defaultTask(email,date);
+      
+      defaultTask(email);
       // close the modal
       modal.style.display="none";
     });
 });
 
 
-//primera tarea por defecto en nuevo resgistro
-const defaultTask = (email, date) =>
 
+//primera tarea por defecto en nuevo resgistro
+const defaultTask = (email,dateEnd) =>
+  
 
   db.collection("users").doc(email).set({
 
     tasks: firebase.firestore.FieldValue.arrayUnion({
               title: "Esta es tu primera tarea",
               description: "Esta es tu primera descripcion de una tarea",
-              status: false
+              status: false,
+              date: new Date(),
+              date_end:  dateEnd.toLocaleDateString('pt-br').split( '/' ).reverse( ).join( '-' )+"T"+addZero(dateEnd.getHours())+":"+addZero(dateEnd.getMinutes())
+
             })
 
 
