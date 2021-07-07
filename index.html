@@ -25,13 +25,16 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom">
     <div class="container">
 
-      <a class="navbar-brand" href="#">Navbar</a>
+      <a class="navbar-brand" href="#">TaskJS</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
         aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto">
+          <li class="nav-item" >
+            <button type="button" id="btnNewTask" class="btn btn-primary">New Task</button>
+          </li>
           <li class="nav-item logged-out" style="display: ;">
             <a class="nav-link" href="#" data-toggle="modal" id="register">Registrate</a>
           </li>
@@ -51,7 +54,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Modal title</h5>
+        <h5 class="modal-title">Register</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" id="btn-close" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -81,7 +84,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Modal title</h5>
+        <h5 class="modal-title">Login</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" id="btn-close-login" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -111,7 +114,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Modal title</h5>
+        <h5 class="modal-title">Edit Task</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" id="btn-close-et" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -136,17 +139,17 @@
   </div>
 </div>
 
+<!-- ADD TASK -->
 
-  <!-- ADD TASK -->
-  <div id="addNote" class="container p-4">
-    <div class="row">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-
-            <h1 class="h4">Add Task</h1>
-
-            <form id="task-form">
+<div id="modal-addNewTask" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add New Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" id="btn-close-add" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="task-form">
               <div class="form-group">
                 <input type="text" id="task-title" class="form-control" class="Task Title" placeholder="Task Title"
                   autofocus>
@@ -166,39 +169,86 @@
               </button>
 
             </form>
-          </div>
+        </div>
+        <div class="modal-footer">
+          
         </div>
       </div>
-      <!-- Tasks date filter -->
-      <div id="filter-menu">
-        <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Estado
-        </button>
-        <div class="dropdown-menu" id="dropdown-menu" aria-labelledby="dropdownMenuButton">
-          <a class="dropdown-item state active" id="all" data-menu="0" href="#">Todas</a>
-          <a class="dropdown-item" id="check" data-menu="0" href="#">Completadas</a>
-          <a class="dropdown-item" id="uncheck" data-menu="0" href="#">Pendientes</a>
-        </div>
-        </div>
-        <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Fecha
-          </button>
-          <div class="dropdown-menu" id="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item active" id="today" data-menu="1" href="#">Hoy</a>
-            <a class="dropdown-item" id="week" data-menu="1" href="#">Esta semana</a>
-            <a class="dropdown-item" id="month" data-menu="1" href="#">Este mes</a>
-            <a class="dropdown-item" id="custom" data-menu="1" href="#">Personalizado</a>
-          </div>
-        </div>
-        </div>
-      <!-- Tasks List -->
-      <div class="col-md-6" id="tasks-container"></div>
     </div>
   </div>
 
-  <!-- The core Firebase JS SDK is always required and must be listed first -->
+
+  
+ 
+
+<!-- Tasks List -->
+
+
+
+<div class="accordion" id="accordionExample">
+
+  <div class="card sections">
+    <div class="card-header" id="headingOne">
+      <h5 class="mb-0 header">
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          TASKS TO DO 
+        </button>
+      </h5>
+    </div>
+    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+      <div class="card-body accordion">
+       <div class="tasks-container" id="tasks-container-pending">
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="card sections">
+    <div class="card-header" id="headingTwo">
+      <h5 class="mb-0 header">
+        <button class="btn btn-link completed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+          COMPLETE TASKS
+        </button>
+      </h5>
+    </div>
+
+    <div id="collapseTwo" class="collapse show" aria-labelledby="headingTwo" data-parent="#accordionExample">
+      <div class="card-body accordion">
+       <div class="tasks-container" id="tasks-container-complete">
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="card sections">
+    <div class="card-header" id="headingThree">
+      <h5 class="mb-0 header">
+        <button class="btn btn-link expired" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+          EXPIRED TASKS
+        </button>
+      </h5>
+    </div>
+
+    <div id="collapseThree" class="collapse show" aria-labelledby="headingThree" data-parent="#accordionExample">
+      <div class="card-body accordion">
+       <div class="tasks-container" id="tasks-container-expired">
+       </div>
+      </div>
+  </div>
+  </div>
+  
+
+
+
+</div>
+
+
+<div id="visitor" style="display: none;">
+  <h3 style="text-align:center;padding: 1em;color: gray;">Test user: demo@demo.com password: 123456</h3>
+</div>
+
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/8.6.4/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-database.js"></script>
 <!-- TODO: Add SDKs for Firebase products that you want to use
