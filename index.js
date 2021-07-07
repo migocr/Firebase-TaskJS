@@ -2,8 +2,20 @@ var db = firebase.firestore();
 
 
 const taskForm = document.getElementById("task-form");
-const tasksContainer = document.getElementById("tasks-container");
+const tasksContainer = document.getElementById("accordionExample");
+const tasksContainerPending = document.getElementById("tasks-container-pending");
+const tasksContainerComplete = document.getElementById("tasks-container-complete");
+const tasksContainerExpired = document.getElementById("tasks-container-expired");
 const taskFormEdit = document.getElementById("task-form-edit");
+const accordionTasks = document.getElementById("accordionExample");
+const visitorPage = document.getElementById("visitor");
+
+const btnNewTask = document.getElementById("btnNewTask");
+const addNewTask = document.getElementById("modal-addNewTask");
+btnNewTask.addEventListener("click", async (e) => {
+  addNewTask.style.display="block";
+});
+
 
 
 
@@ -51,9 +63,18 @@ const loginCheck = (user) => {
   if (user) {
     loggedInLinks.forEach((link) => (link.style.display = "block"));
     loggedOutLinks.forEach((link) => (link.style.display = "none"));
+    accordionExample.style.display="block";
+    btnNewTask.style.display="inline-block";
+    visitorPage.style.display="none";
+
   } else {
     loggedInLinks.forEach((link) => (link.style.display = "none"));
     loggedOutLinks.forEach((link) => (link.style.display = "block"));
+    //accordionExample.style.display="none";
+    btnNewTask.style.display="none";
+    accordionTasks.style.display="none";
+    visitorPage.style.display="block";
+    
   }
 };
 
@@ -80,6 +101,7 @@ const saveTask = (user, title, description,dateEnd) =>
               date_end:dateEnd
              
             })
+
     
   });
 
@@ -95,8 +117,9 @@ const onGetTasks = (callback) => db.collection("users").onSnapshot(callback);
 
 //var tareasDelUsuario = [];
 async function deleteTask(id,email,tareasDelUsuario){
-console.log(tareasDelUsuario)
-var task = tareasDelUsuario[id];
+console.log(id)
+let tasks = tareasDelUsuario[0];
+let task = tasks[id];
 var docRef = db.collection("users").doc(email);
  await docRef.update({
    tasks: firebase.firestore.FieldValue.arrayRemove(task)
@@ -114,26 +137,28 @@ const updateTask = (id, updatedTask) => db.collection('users').doc(id).update(up
 
 //filtro por tareas completadas o no completadas
 
-txt = document.getElementById("txt");
-const filterMenu = document.getElementById("filter-menu");
 
-const filterButtonText = filterMenu.querySelectorAll(".dropdown-toggle");
-console.log(filterButtonText)
+//const filterMenu = document.getElementById("filter-menu");
 
+//const filterButtonText = filterMenu.querySelectorAll(".dropdown-toggle");
+
+
+/*let menuSelected = [];
 const filterOptions = filterMenu.querySelectorAll(".dropdown-item");
     filterOptions.forEach((filterdata) =>
       filterdata.addEventListener("click", async (e) => {
         let filtro = e.target.id;
-        let menuSelected = e.target.getAttribute("data-menu");
+        let menuPosition = e.target.getAttribute("data-menu");
+        //console.log(e.target.text);
         console.log();
-
+        menuSelected.push(menuPosition);
         auth.onAuthStateChanged((user) => {
         
         
         if (user) {
           console.log(user.email)
-          setupPosts(true,user.email,filtro)
-          filterButtonText[parseInt(menuSelected)].innerHTML=`${e.target.text}`;
+          setupPosts(true,user.email)
+          filterButtonText[parseInt(menuPosition)].innerHTML=`${e.target.text}`;
         } else {
           console.log("error de inicio de sesion")
           }
@@ -142,112 +167,234 @@ const filterOptions = filterMenu.querySelectorAll(".dropdown-item");
 
 
 
-
-const setupPosts = async(e,email,filter) => {
-  //console.log(e);
-  onGetTasks((querySnapshot) => {
-    tasksContainer.innerHTML = "";
-    var tareasDelUsuario = [];
-    querySnapshot.forEach((doc) => {
-      let id = email;
-      const users = doc.data();
-      //console.log(doc.id);
-      //console.log(tareas)
-      let tareas = users.tasks;
-      if (e) {
-        //let status = users.tasks[0].status;
-        //console.log(status);
-        if (doc.id == email && tareas) {
-          
-          
-          //console.log("es igual")
-          //console.log(users.tasks)
-          //console.log(tareasDelUsuario);
-          for (var i = 0; i <= tareas.length-1; i++) {
-
-          tareasDelUsuario.push(tareas[i]);
-          var reverseID = ((tareas.length-i)-1);
+   */     
 
 
-          if (tareas[reverseID].status) {
-            var checked = "checked";
-            //console.log("es true")
-          } else {
-            var checked = "";
-          }
 
-          let newDate = new Date();
-          let oldDate =  new Date(tareas[reverseID].date_end);
 
-          var fechaInicio = new Date(newDate).getTime();
-          var fechaFin    = new Date(oldDate).getTime();
-          var diff = fechaFin - fechaInicio;
-          var diffDias = diff/(1000*60*60*24);
-          var diffHoras = (diff%(1000*60*60*24)/3.6e+6);
-          var diffMinutos = (diff%(1000*60*60*24)%3.6e+6)/60000;
-          //console.log(tareas[reverseID])
-          //console.log("Dias ",Math.trunc(diffDias) ,"Horas ", Math.trunc(diffHoras) ,"Minutos " , Math.trunc(diffMinutos));
-          if ( newDate > oldDate ) {
-            var task_at_time = ("Tarea caduco hace: " + Math.trunc(diffDias)*-1 + " Dias " + Math.trunc(diffHoras)*-1 + " Horas " + Math.trunc(diffMinutos)*-1 + " Minutos");
-            var task_at_time_color = "alert-dark"
-          } else if (new Date() == new Date(tareas[reverseID].date_end) ) {
-            //console.log("son iguales")
-          } else{
-             var task_at_time = ("Tiempo restante: " + Math.trunc(diffDias) + " Dias " + Math.trunc(diffHoras) + " Horas " + Math.trunc(diffMinutos) + " Minutos");
-             var task_at_time_color = "alert-success"
-          }
-          const printTask = async(taskTitle,taskDescription,reverseID,checked,task_at_time_color,task_at_time) => {
-            tasksContainer.innerHTML += `<div class="card card-body mt-2 border-primary">
-              <div class="panel panel-success"></div>
-              <h3 class="h5">${taskTitle}</h3>
-              <p>${taskDescription}</p>
-              <div>
-                <button class="btn btn-primary btn-delete" data-id="${reverseID}">
+const printTask = async(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time,section,borderCard) => {
+
+            section.innerHTML += `<div id="post" data-id="${i}" class="card card-body border-left" style="${borderCard}">
+
+            
+
+            <div id="postCheck"  class="round">
+              <input type="checkbox" class="checkbox-circle" id="checkbox" name="${taskTitle}" ${checked}>
+              <label for="${taskTitle}" data-id="${i}" value ="${i}">
+              </label>
+            </div>
+            <h3 style="display:inline-block; padding-left:2em;" data-id="${i}" class="h5">${taskTitle}</h3>
+            
+              
+
+              
+              
+              
+              <div data-id="${i}" id="oculto">
+                <p>${taskDescription}</p>
+                <button class="btn btn-primary btn-delete" data-id="${i}">
                   🗑 Delete
                 </button>
-                <button class="btn btn-secondary btn-edit" data-id="${reverseID}">
+                <button class="btn btn-secondary btn-edit" data-id="${i}">
                   🖉 Edit
                 </button>
-                <label class="switch">
-                  <input type="checkbox" ${checked}>
-                  
-                  <span data-id="${reverseID}" class="slider round" id="switchStatus"></span>
-
-                </label>
+                
                 <div class="alert ${task_at_time_color}" role="alert">
                   ${task_at_time} 
                 </div>
                </div>
               </div>`;
+            };
+
+const setupPosts = async(e,email) => {
+
+
+  onGetTasks((querySnapshot) => {
+    tasksContainerPending.innerHTML = "";
+    tasksContainerComplete.innerHTML = "";
+    tasksContainerExpired.innerHTML = "";
+    var tareasDelUsuario = [];
+    querySnapshot.forEach((doc) => {
+      let id = email;
+
+      const users = doc.data();
+      let tareas = users.tasks;
+    
+      
+      
+      if (e) {
+        //let status = users.tasks[0].status;
+        //console.log(status);
+        if (doc.id == email && tareas) {
+        //console.log(tareasDelUsuario)
+        var newtareas = new Date();
+        
+        tareas.sort(function(a,b){
+          console.log()
+            let adiffTime = new Date(a.date_end) - new Date();
+            let bdiffTime = new Date(b.date_end) - new Date();
+            if (adiffTime > 0) {
+              adiffTime = adiffTime * (-1)
+            }
+            if (bdiffTime > 0) {
+              bdiffTime = bdiffTime * (-1)
             }
 
-          let taskTitle = tareas[reverseID].title;
-          let taskDescription = tareas[reverseID].description;
-          if (filter == "all") {
-            printTask(taskTitle,taskDescription,reverseID,checked,task_at_time_color,task_at_time);
-            
-          } else if(filter =="check"){
-            if (tareas[reverseID].status) {
-              printTask(taskTitle,taskDescription,reverseID,checked,task_at_time_color,task_at_time);
-            } 
-          } else if (filter == "uncheck") {
-            if (!(tareas[reverseID].status)) {
-              printTask(taskTitle,taskDescription,reverseID,checked,task_at_time_color,task_at_time);
-            } 
+            //console.log("new " + new Date(b.date_end))
+            //console.log(a.title + " " + diffTime)
+            return  (new Date(adiffTime) - new Date(bdiffTime))
+
+          })
+          
+        //newtareas.reverse();
+        console.log(tareas);
+        tareasDelUsuario.push(tareas)
+
+          
+          //console.log(users.tasks)
+          //console.log(tareasDelUsuario);
+          
+          for (var i = tareas.length-1; i >= 0; i--) {
+
+          //var reverseID = ((tareas.length-i)-1);
+
+          
+
+
+          let newDate = new Date();
+          let endDate =  new Date(tareas[i].date_end);
+
+          var fechaInicio = new Date(newDate).getTime();
+          var fechaFin    = new Date(endDate).getTime();
+          var diff = fechaFin - fechaInicio;
+          var diffDias = diff/(1000*60*60*24);
+          var diffHoras = (diff%(1000*60*60*24)/3.6e+6);
+          var diffMinutos = (diff%(1000*60*60*24)%3.6e+6)/60000;
+          //console.log(tareas[i])
+          //console.log("Dias ",Math.trunc(diffDias) ,"Horas ", Math.trunc(diffHoras) ,"Minutos " , Math.trunc(diffMinutos));
+          if ( newDate > endDate ) {
+            var task_at_time = ("Tarea caduco hace: " + Math.trunc(diffDias)*-1 + " Dias " + Math.trunc(diffHoras)*-1 + " Horas " + Math.trunc(diffMinutos)*-1 + " Minutos");
+            var task_at_time_color = "alert-dark"
+          } else if (new Date() == new Date(tareas[i].date_end) ) {
+            //console.log("son iguales")
+          } else{
+             var task_at_time = ("Tiempo restante: " + Math.trunc(diffDias) + " Dias " + Math.trunc(diffHoras) + " Horas " + Math.trunc(diffMinutos) + " Minutos");
+             var task_at_time_color = "alert-success"
+          }
+          if (tareas[i].status) {
+            var checked = "checked";
+            var task_at_time_color = "alert-primary"
+            //console.log("es true")
+          } else {
+            var checked = "";
           }
 
           
+            let taskTitle = tareas[i].title;
+            if (taskTitle) {
+              taskTitle = taskTitle[0].toUpperCase() + taskTitle.slice(1);
+            }
+            
+            console.log(taskTitle)
+            let taskDescription = tareas[i].description;
+            if (endDate >= newDate && !tareas[i].status) {
+              let borderCard = "border-color: #52c28a!important";
+              printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time, tasksContainerPending,borderCard);
+            } else if (tareas[i].status) {
+              let borderCard = "border-color: #527ac2!important";
+              printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time, tasksContainerComplete,borderCard);
+              
+            } else if ( newDate > endDate ) {
+              let borderCard = "border-color: #62656b!important";
+              printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time, tasksContainerExpired,borderCard);
+            }
+
+            
+            //console.log(menuSelected)
+            /*
+            let filterButt1 = filterButtonText[0].textContent;
+            let filterButt2 = filterButtonText[1].textContent;
+            
+            const filterByTask = async(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time) => {
+              switch (filterButt1){
+                    case "All tasks":
+                      printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                      break;
+                    case "All":
+                      printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                      break;
+                    case "Completed":
+                      if (tareas[i].status) {
+                        printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                      }
+                      break;
+                    case "Pending":
+                      if (!(tareas[i].status)) {
+                        printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                      }
+                      break;
+                    case "Expired":
+                      if (newDate > endDate && !(tareas[i].status)) {
+                        printTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                      }
+                      break;
+                    default:
+                      console.log("error switch case revisar codigo");
+                  }
+            }
+
+
+            switch (filterButt2) {
+              case "By Date":
+                filterByTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                break;
+              case "All":
+                filterByTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                break;
+              case "Today":
+                if (endDate.getFullYear() == newDate.getFullYear() && endDate.getMonth() == newDate.getMonth() && endDate.getDate() == newDate.getDate()) {
+                  console.log("Si hay tareas para hoy")
+                  filterByTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                }
+                break;
+              case "This Week":
+                var limit7day = new Date(newDate.setDate(newDate.getDate()+ parseInt(7)));
+          
+                if (new Date(endDate) <= new Date(limit7day) && new Date(endDate)>= new Date() || endDate.getDate() == newDate.getDate())  {
+                  console.log(endDate.getDate())
+                  filterByTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                }
+                break;
+              case "This Month":
+                if (endDate.getFullYear() == newDate.getFullYear() && endDate.getMonth() == newDate.getMonth())  {
+                  //console.log(newDate.getDate())
+                  filterByTask(taskTitle,taskDescription,i,checked,task_at_time_color,task_at_time);
+                }
+                break;
+              case "Custom":
+                break;
+              default:
+                text = "No value found";
+            }
+            */
+            
+            
+   
+            
+          
            }
           
+          
+
         }else{
 
         }
         
-        addNote.style.display ="block";
+       
         
       } else{
-        addNote.style.display ="none";
-        tasksContainer.innerHTML += `NO DATA`;
+        
+        accordionTasks.innerHTML += `NO DATA`;
       }
 
       
@@ -259,6 +406,7 @@ const setupPosts = async(e,email,filter) => {
         //console.log(tareasDelUsuario);
         try {
           //console.log(tareasDelUsuario)
+
           await deleteTask(e.target.dataset.id,email,tareasDelUsuario);
         } catch (error) {
           //console.log(error);
@@ -266,62 +414,116 @@ const setupPosts = async(e,email,filter) => {
       })
     );
 
+    
+
     const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
-    let position = [];
-    let oldTask = [];
+    
+
     btnsEdit.forEach((btn) => {
       btn.addEventListener("click", async (e) => {
         try {
-          const doc = await getTask(email);
-          const users = doc.data();
-          oldTask.push(users.tasks[e.target.dataset.id]);
+          document.getElementById("buttonUpdate").value =e.target.dataset.id;
+         
+          let tasks = tareasDelUsuario[0];
           //console.log(users.tasks[e.target.dataset.id]);
-          taskFormEdit["task-title"].value = users.tasks[e.target.dataset.id].title;
-          taskFormEdit["task-description"].value = users.tasks[e.target.dataset.id].description;
+          taskFormEdit["task-title"].value = tasks[e.target.dataset.id].title;
+          taskFormEdit["task-description"].value = tasks[e.target.dataset.id].description;
           //let taskEditId = e.target.dataset.id;
           //editStatus = true;
           //id = email;
           //taskForm["btn-task-form"].innerText = "Update";
           modalEditTask.style.display="block";
           //editTask(e.target.dataset.id.email)
-          position.push(e.target.dataset.id);
+          
 
         } catch (error) {
           console.log(error);
         }
         
       });
+
     });
 
-    //escucha el switch de status y lo cambia si se le da click
-    const btnStatus = tasksContainer.querySelectorAll("#switchStatus");
-    btnStatus.forEach((btnStat) =>
-      btnStat.addEventListener("click", async (e) => {
-      
-        try {
-          let taskStatus = tareasDelUsuario[e.target.dataset.id].status;
-          let taskTitle = tareasDelUsuario[e.target.dataset.id].title;
-          let taskDescription = tareasDelUsuario[e.target.dataset.id].description;
-          let taskDate = tareasDelUsuario[e.target.dataset.id].date;
-          let taskDateEnd = tareasDelUsuario[e.target.dataset.id].date_end;
-          let arrayTask = [taskTitle,taskDescription]
 
-          let editedTasks = [];
+    //update data
+    const buttonUpdateTask = document.querySelector("#buttonUpdate");
+      buttonUpdateTask.addEventListener("click", (e) => {
+        e.preventDefault();
+        let id = (e.target.value);
+        let tareas = tareasDelUsuario[0];
+        modalEditTask.style.display="none";
+        let editedTitle = taskFormEdit["task-title"].value;
+        let editedDescription = taskFormEdit["task-description"].value;
+        tareas[id] = {title: editedTitle, description: editedDescription, status: tareas[id].status,date:tareas[id].date,date_end:tareas[id].date_end};
+        db.collection("users").doc(email).update({
+                      tasks: tareas
+                    });
+      });
+
+
+    
+    const postCard = document.querySelectorAll("#post");
+    postCard.forEach((pCard) =>
+      pCard.addEventListener("click", (e) => {
+        e.preventDefault();
+        var oculto = document.querySelectorAll("#oculto");
+        //console.log(e.target.dataset.id)
+        var id = e.target.dataset.id;
+        for (var i = oculto.length - 1; i >= 0; i--) {
+          //console.log(oculto[i].dataset.id)
+          if (oculto[i].dataset.id == e.target.dataset.id) {
+            console.log(oculto[i].clientHeight)
+            oculto[i].style.height="200px";
+            if ( oculto[i].clientHeight==0) {
+                oculto[i].style.height="200px";
+              //oculto[i].style="display: inline-block; height:auto; animation: 3s fadeIn; animation-fill-mode: forwards;";
+            } else{
+              oculto[i].style.height="0px";
+              //oculto[i].style="display:none; animation:.5s fadeIn; animation-fill-mode: forwards;";
+            }
+            
+          }
+        }
+        
+
+        try {
+         
+
+          
+        } catch (error) {
+          console.log(error);
+        }
+      })
+    );
+    
+
+    //escucha el switch de status y lo cambia si se le da click
+    const btnStatus = document.querySelectorAll(".checkbox-circle");
+    const postCheck = document.querySelectorAll("#postCheck");
+    console.log("btn status" + btnStatus.length);
+    postCheck.forEach((btnStat) =>
+      btnStat.addEventListener("click", async (e) => {
+        console.log(e.target.dataset.id)
+        var id = (e.target.dataset.id);
+        //console.log(tareasDelUsuario[e.target])
+        try {
+          let tasks = tareasDelUsuario[0];
+          console.log(tasks)
+          let taskStatus = tasks[id].status;
+          let taskTitle = tasks[id].title;
+          let taskDescription = tasks[id].description;
+          let taskDate = tasks[id].date;
+          let taskDateEnd = tasks[id].date_end;
+          tasks[id] = {title: taskTitle, description: taskDescription, status:!taskStatus,date:taskDate,date_end: taskDateEnd};
+
+          
           //console.log(e.target.dataset.id)
           //console.log({title: taskTitle, description: taskDescription,status:taskStatus});
 
-          for (var i = 0; i <= tareasDelUsuario.length-1; i++) {
-          if (i == e.target.dataset.id) {
-      
-            editedTasks.push({title: taskTitle, description: taskDescription, status:!taskStatus,date:taskDate,date_end: taskDateEnd});
-          } else{
-            //console.log("tarea no editada"+i);
-            editedTasks.push(tareasDelUsuario[i]);
-          }
-        }
-        console.log(editedTasks);
+         
+        
         db.collection("users").doc(email).update({
-          tasks: editedTasks
+          tasks: tasks
         })
 
 
@@ -333,43 +535,18 @@ const setupPosts = async(e,email,filter) => {
     );
 
 
+
+
     
-
-    document.getElementById("buttonUpdate").addEventListener("click", function() {
-      //var oldTask = [taskFormEdit["task-title"].value , taskFormEdit["task-description"].value];
-      modalEditTask.style.display="none";
-      //console.log(position);
-      let editedTasks = [];
-      let status = tareasDelUsuario[position].status;
-      let date = tareasDelUsuario[position].date;
-      let date_end = tareasDelUsuario[position].date_end;
-      let editedTitle = taskFormEdit["task-title"].value;
-      let editedDescription = taskFormEdit["task-description"].value;
-      //console.log(editedTitle + editedDescription);
-      //console.log(position[position.length-1]);
-      //console.log(oldTask[oldTask.length-1])
-      //console.log(taskFormEdit["task-title"].value);
-      //console.log(tareasDelUsuario);
-      for (var i = 0; i <= tareasDelUsuario.length-1; i++) {
-        if (i == position[position.length-1]) {
-          //console.log("tarea editada"+i)
-
-          editedTasks.push({title: editedTitle, description: editedDescription, status:status,date:date,date_end:date_end});
-        } else{
-          //console.log("tarea no editada"+i);
-          editedTasks.push(tareasDelUsuario[i]);
-        }
-      }
-      
-      console.log(status);
-      db.collection("users").doc(email).update({
-          tasks: editedTasks
-        })
-    });
 
 
   });
 };
+
+
+
+
+
 
 
 taskForm.addEventListener("submit", async (e) => {
@@ -390,6 +567,7 @@ taskForm.addEventListener("submit", async (e) => {
     if (!editStatus) {
 
       await saveTask(email,title.value, description.value,date.value);
+      await setupPosts(true,email)
     } else {
       await updateTask(tasks, {
 
@@ -418,6 +596,7 @@ const modalEditTask = document.getElementById('modal-edit-task');
 const btnClose =document.getElementById('btn-close');
 const btnCloseLogin =document.getElementById('btn-close-login');
 const btnCloseEditTask =document.getElementById('btn-close-et');
+const btnCloseAddNewTask =document.getElementById('btn-close-add');
 
 register.addEventListener("click", function () {
   modal.style.display="block";
@@ -433,11 +612,17 @@ btnCloseLogin.addEventListener("click",function(){
 btnCloseEditTask.addEventListener("click",function(){
   modalEditTask.style.display="none";
 })
+btnCloseAddNewTask.addEventListener("click",function(){
+  addNewTask.style.display="none";
+})
 
 login.addEventListener("click", function () {
   modalLogin.style.display="block";
   
 })
+
+
+
 
 //registro
 const signUpForm = document.querySelector("#signup-form");
@@ -453,7 +638,7 @@ signUpForm.addEventListener("submit", (e) => {
       // clear the form
       signUpForm.reset();
       
-      defaultTask(email);
+      defaultTask(email,date);
       // close the modal
       modal.style.display="none";
     });
@@ -494,7 +679,7 @@ signInForm.addEventListener("submit", (e) => {
     signInForm.reset();
     // close the modal
     modalLogin.style.display="none";
-    setupPosts(e,email);
+    setupPosts(true,email);
   });
 });
 
@@ -516,13 +701,14 @@ auth.onAuthStateChanged((user) => {
     //console.log(user.email)
     //console.log("signin");
     loginCheck(user);
-    setupPosts(true,user.email,"all");
+    setupPosts(true,user.email);
     addDate();
     
   } else {
     
     //console.log("signout");
     loginCheck(user);
-    setupPosts(false);
+    
   }
 });
+
