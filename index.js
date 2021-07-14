@@ -648,11 +648,13 @@ function fbsign(){
         // The signed-in user info.
         var user = result.user;
         if (db.collection("users").doc(user.email)) {
-
+            //evitamos borrar las tareas existentes
         } else {
+            //creamos las primeras tareas
             defaultTask(user.email);
         }
-        
+        modalLogin.style.display = "none";
+        modal.style.display = "none";
         //setupPosts(true);
         // This gives you a Facebook Access Token. You can use it to access the Facebook API.
         var accessToken = credential.accessToken;
@@ -674,6 +676,39 @@ function fbsign(){
         // ...
       });
 }
+
+
+const googleButton = document.querySelectorAll("#googleBtn");
+googleButton.forEach((googleBtn) =>
+            googleBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                      auth.signInWithPopup(provider).then((result) => {
+                        console.log(result);
+                        modalLogin.style.display = "none";
+                        modal.style.display = "none";
+                        //console.log("google sign in");
+                        //console.log(result.user.email);
+                        if (db.collection("users").doc(user.email)) {
+                            //evitamos borrar las tareas existentes
+                        } else {
+                            //creamos las primeras tareas
+                            defaultTask(user.email);
+                        }
+                      })
+                      .catch(err => {
+                        console.log(err);
+                      })
+
+                
+                } catch (error) {
+                    //console.log(error);
+                }
+            })
+        );
+
+
 
 
 //registro
