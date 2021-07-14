@@ -647,8 +647,8 @@ function fbsign(){
 
         // The signed-in user info.
         var user = result.user;
-        console.log(user.email);
-        console.log(user.name)
+        defaultTask(user.email);
+        //setupPosts(true);
         // This gives you a Facebook Access Token. You can use it to access the Facebook API.
         var accessToken = credential.accessToken;
 
@@ -680,7 +680,6 @@ signUpForm.addEventListener("submit", (e) => {
     const email = signUpForm["signup-email"].value;
     const password = signUpForm["signup-password"].value;
     const name = signUpForm["signup-name"].value;
-    let date = new Date(Date.now() + 1000 /*sec*/ * 60 /*min*/ * 60 /*hour*/ * 24 /*day*/ * 10)
     
 
     
@@ -696,7 +695,7 @@ signUpForm.addEventListener("submit", (e) => {
             signUpForm.reset();
             setMoreData(name);
 
-            defaultTask(email, date, name);
+            defaultTask(email);
             
             // close the modal
             modal.style.display = "none";
@@ -735,8 +734,8 @@ function setMoreData(nombre){
 
 
 //primera tarea por defecto en nuevo resgistro
-function defaultTask(email, dateEnd, name ){
-
+function defaultTask(email ){
+    let dateEnd = new Date(Date.now() + 1000 /*sec*/ * 60 /*min*/ * 60 /*hour*/ * 24 /*day*/ * 10)
     let date = new Date();
     db.collection("users").doc(email).set({
         
