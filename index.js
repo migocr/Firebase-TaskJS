@@ -634,8 +634,43 @@ login.addEventListener("click", function() {
 
 
 
+//fb registro
+var provider = new firebase.auth.FacebookAuthProvider();
+function fbsign(){
+    firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then((result) => {
+        
+        /** @type {firebase.auth.OAuthCredential} */
+        var credential = result.credential;
+
+        // The signed-in user info.
+        var user = result.user;
+        console.log("jalo")
+        // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+        var accessToken = credential.accessToken;
+
+        // ...
+      })
+      .catch((error) => {
+        
+        // Handle Errors here.
+        var errorCode = error.code;
+        console.log(errorCode)
+        var errorMessage = error.message;
+        // The email of the user's account used.
+        var email = error.email;
+        // The firebase.auth.AuthCredential type that was used.
+        var credential = error.credential;
+
+        // ...
+      });
+}
+
 
 //registro
+
 var signUpIMG = [];
 const signUpForm = document.querySelector("#signup-form");
 signUpForm.addEventListener("submit", (e) => {
@@ -644,7 +679,6 @@ signUpForm.addEventListener("submit", (e) => {
     const password = signUpForm["signup-password"].value;
     const name = signUpForm["signup-name"].value;
     let date = new Date(Date.now() + 1000 /*sec*/ * 60 /*min*/ * 60 /*hour*/ * 24 /*day*/ * 10)
-    
     
 
     
@@ -679,7 +713,7 @@ function setMoreData(nombre){
     console.log(nombreImg)
     let file = signUpIMG[signUpIMG.length-1];
     let user = firebase.auth().currentUser;
-    //console.log(file.type);
+    //console.log(file);
     var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
     var task = storageRef.put(file);
 
@@ -688,7 +722,7 @@ function setMoreData(nombre){
       displayName: nombre,
       photoURL: "profile_picture/" + user.uid
     }).then(() => {
-      printUserData();
+      setTimeout(printUserData,3000);
     }).catch((error) => {
       // An error occurred
       // ...
@@ -805,13 +839,6 @@ auth.onAuthStateChanged((user) => {
 
 let name_details = document.getElementById("name_details");
 let userPic = document.getElementById("user_pic");
-const setUserData = (email,name) =>
-    name_details.innerHTML=`<div id="user_name" class="name">${name}</div>
-                         <div id="user_email" class="user_email">${email}</div>`
-    
-    ;
-
-
 
 async function printUserData(){
     let user =  firebase.auth().currentUser;
@@ -821,25 +848,16 @@ async function printUserData(){
 
     await storage.ref('profile_picture/'+user.uid).getDownloadURL()
       .then((url) => {
-        console.log(url);
+        //console.log(url);
         userPic.src =  url;
       })
-
+    let name = user.displayName;
+    let email = user.email;
+    name_details.innerHTML=`<div id="user_name" class="name">${name}</div>
+                         <div id="user_email" class="user_email">${email}</div>`
     //var forestRef = storageRef.child('profile_picture/'+ user.uid);
     //console.log(forestRef)
     //console.log(user.photoURL);
-    user.providerData.forEach((profile) => {
-        //console.log("Sign-in provider: " + profile.providerId);
-        //console.log("  Provider-specific UID: " + profile.uid);
-        let name =  profile.displayName;
-        let email = profile.email;
-        //let picture = profile.photoURL;
-        //console.log(user.uid)
-        setUserData(email,name)
-        console.log(userPic.src)
-        
-      });
-
    
 }
 
@@ -877,7 +895,7 @@ document.querySelectorAll(".drop-zone__input").forEach((inputElement) => {
     if (e.dataTransfer.files.length && e.dataTransfer.files[0].type.startsWith("image/")) {
       inputElement.files = e.dataTransfer.files;
       updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
-      signUpIMG.push(e.dataTransfer.files[0]);
+     
     }
 
     dropZoneElement.classList.remove("drop-zone--over");
@@ -910,7 +928,7 @@ function updateThumbnail(dropZoneElement, file) {
   // Show thumbnail for image files
   if (file.type.startsWith("image/")) {
     const reader = new FileReader();
-
+    signUpIMG.push(file);
     reader.readAsDataURL(file);
     reader.onload = () => {
       thumbnailElement.style.backgroundImage = `url('${reader.result}')`;

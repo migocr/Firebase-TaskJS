@@ -162,19 +162,17 @@ div#collapseOne, div#collapseTwo, div#collapseThree {
 }
 
 .drop-zone {
-  max-width: 200px;
-  height: 200px;
-  padding: 25px;
+  height: 5em;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   font-family: "Quicksand", sans-serif;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 12px;
   cursor: pointer;
-  color: #cccccc;
-  border: 4px dashed #009578;
+  color: #000000;
+  border: 4px dashed #000000;
   border-radius: 10px;
 }
 
@@ -208,6 +206,24 @@ div#collapseOne, div#collapseTwo, div#collapseThree {
   font-size: 14px;
   text-align: center;
 }
+
+
+
+.btn-facebook {
+    background: #3B5998;
+    border-radius: 0;
+    color: #fff;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #263961; 
+  }
+  .btn-facebook:link, .btn-facebook:visited {
+    color: #fff;
+  }
+  .btn-facebook:active, .btn-facebook:hover {
+    background: #263961;
+    color: #fff;
+  }
 
 
 
