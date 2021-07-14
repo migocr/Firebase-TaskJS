@@ -1,13 +1,14 @@
 var db = firebase.firestore();
 
 
+
+
 const taskForm = document.getElementById("task-form");
-const tasksContainer = document.getElementById("accordionExample");
+const tasksContainer = document.getElementById("page-content");
 const tasksContainerPending = document.getElementById("tasks-container-pending");
 const tasksContainerComplete = document.getElementById("tasks-container-complete");
 const tasksContainerExpired = document.getElementById("tasks-container-expired");
 const taskFormEdit = document.getElementById("task-form-edit");
-const accordionTasks = document.getElementById("accordionExample");
 const visitorPage = document.getElementById("visitor");
 
 const btnNewTask = document.getElementById("btnNewTask");
@@ -46,27 +47,33 @@ let editStatus = false;
 let id = '';
 
 
-const loggedOutLinks = document.querySelectorAll(".logged-out");
-const loggedInLinks = document.querySelectorAll(".logged-in");
+const loginMenu = document.getElementById("login");
+const registerMenu=document.getElementById("register");
+const logoutMenu=document.getElementById("data-user");
 
 
 
 
 const loginCheck = (user) => {
     if (user) {
-        loggedInLinks.forEach((link) => (link.style.display = "block"));
-        loggedOutLinks.forEach((link) => (link.style.display = "none"));
-        accordionExample.style.display = "block";
-        btnNewTask.style.display = "inline-block";
+        logoutMenu.style.visibility = "visible";
+        registerMenu.style.display = "none";
+        loginMenu.style.display = "none";
+        tasksContainer.style.display = "inline-block";
+        btnNewTask.style.display = "flex";
         visitorPage.style.display = "none";
+        //console.log(user.email);
+        //allTasksMenu.style.display = "flex";
 
     } else {
-        loggedInLinks.forEach((link) => (link.style.display = "none"));
-        loggedOutLinks.forEach((link) => (link.style.display = "block"));
+        logoutMenu.style.visibility = "hidden";
+        registerMenu.style.display = "flex";
+        loginMenu.style.display = "block";
         //accordionExample.style.display="none";
         btnNewTask.style.display = "none";
-        accordionTasks.style.display = "none";
+        tasksContainer.style.display = "none";
         visitorPage.style.display = "block";
+        //allTasksMenu.style.display = "none";
 
     }
 };
@@ -80,7 +87,7 @@ const loginCheck = (user) => {
 
 
 
-const saveTask = (user, title, description, dateEnd) =>
+const saveTask = (email, title, description, dateEnd) =>
 
     db.collection("users").doc(email).update({
 
@@ -211,7 +218,7 @@ const setupPosts = async (e, email) => {
 
             const users = doc.data();
             let tareas = users.tasks;
-
+            //console.log(users.user_data)
 
 
             if (e) {
@@ -384,7 +391,7 @@ const setupPosts = async (e, email) => {
                     document.getElementById("taskCompleteCount").innerHTML=`${completeTaskCount} Tasks Complete`;
                     document.getElementById("taskExpiredCount").innerHTML=`${expiredTaskCount} Tasks Expired`;
                     document.getElementById("taskPendingCount").innerHTML=`${pendingTaskCount} Tasks Pending`;
-                    console.log(completeTaskCount)
+                    //console.log(completeTaskCount)
 
                 } else {
 
@@ -394,7 +401,7 @@ const setupPosts = async (e, email) => {
 
             } else {
 
-                accordionTasks.innerHTML += `NO DATA`;
+                tasksContainer.innerHTML += `NO DATA`;
             }
 
 
@@ -506,7 +513,7 @@ const setupPosts = async (e, email) => {
         //escucha el switch de status y lo cambia si se le da click
         const btnStatus = document.querySelectorAll(".checkbox-circle");
         const postCheck = document.querySelectorAll("#postCheck");
-        console.log("btn status" + btnStatus.length);
+        //console.log("btn status" + btnStatus.length);
         postCheck.forEach((btnStat) =>
             btnStat.addEventListener("click", async (e) => {
                 console.log(e.target.dataset.id)
@@ -557,13 +564,11 @@ const setupPosts = async (e, email) => {
 
 taskForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    var user = firebase.auth().currentUser;
+    var email = await user.email;
+    
 
-    await auth.onAuthStateChanged((user) => {
-        email = user.email;
-
-    });
-
-    //console.log(email);
+    console.log(email);
 
     const title = taskForm["task-title"];
     const description = taskForm["task-description"];
@@ -631,44 +636,107 @@ login.addEventListener("click", function() {
 
 
 //registro
+var signUpIMG = [];
 const signUpForm = document.querySelector("#signup-form");
 signUpForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const email = signUpForm["signup-email"].value;
     const password = signUpForm["signup-password"].value;
+    const name = signUpForm["signup-name"].value;
     let date = new Date(Date.now() + 1000 /*sec*/ * 60 /*min*/ * 60 /*hour*/ * 24 /*day*/ * 10)
+    
+    
+
+    
+    
+    
     // Authenticate the User
+    
     auth
         .createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
+            //setupUserData(email,date,name);
             // clear the form
             signUpForm.reset();
+            setMoreData(name);
 
-            defaultTask(email, date);
+            defaultTask(email, date, name);
+            
             // close the modal
             modal.style.display = "none";
-        });
+        })
+
+
+
+    
 });
+
+//pendiente dropear imagen funciona seleccionarla no
+function setMoreData(nombre){
+    //console.log(name)
+    let nombreImg=signUpIMG[signUpIMG.length-1].name;
+    let extension = nombreImg.split('.').pop();
+    console.log(nombreImg)
+    let file = signUpIMG[signUpIMG.length-1];
+    let user = firebase.auth().currentUser;
+    //console.log(file.type);
+    var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
+    var task = storageRef.put(file);
+
+    
+    user.updateProfile({
+      displayName: nombre,
+      photoURL: "profile_picture/" + user.uid
+    }).then(() => {
+      printUserData();
+    }).catch((error) => {
+      // An error occurred
+      // ...
+    });  
+
+}
 
 
 
 //primera tarea por defecto en nuevo resgistro
-const defaultTask = (email, dateEnd) =>
+function defaultTask(email, dateEnd, name ){
 
-
+    let date = new Date();
     db.collection("users").doc(email).set({
-
-        tasks: firebase.firestore.FieldValue.arrayUnion({
-            title: "Esta es tu primera tarea",
-            description: "Esta es tu primera descripcion de una tarea",
-            status: false,
-            date: new Date(),
-            date_end: dateEnd.toLocaleDateString('pt-br').split('/').reverse().join('-') + "T" + addZero(dateEnd.getHours()) + ":" + addZero(dateEnd.getMinutes())
-
-        })
+        
+            tasks : [
+            {
+                title: "Esta es tu primera tarea",
+                description: "La descripcion es opcional",
+                status: false,
+                date: new Date(),
+                date_end: dateEnd.toLocaleDateString('pt-br').split('/').reverse().join('-') + "T" + addZero(dateEnd.getHours()) + ":" + addZero(dateEnd.getMinutes())
+            },
+            {
+                title: "Esta es una tarea compleatada",
+                description: "Esta es tu primera descripcion de una tarea",
+                status: true,
+                date: new Date(),
+                date_end: dateEnd.toLocaleDateString('pt-br').split('/').reverse().join('-') + "T" + addZero(dateEnd.getHours()) + ":" + addZero(dateEnd.getMinutes())
+            },
+            {
+                title: "Esta es una tarea expirada",
+                description: "Cuando una tarea no se completa antes del tiempo limite pasara a esta seccion",
+                status: false,
+                date: new Date(),
+                date_end: date.toLocaleDateString('pt-br').split('/').reverse().join('-') + "T" + addZero(dateEnd.getHours()) + ":" + addZero(dateEnd.getMinutes())
+            }
+            ]
+        
+        
 
 
     });
+    
+};
+
+
+
 
 //login
 
@@ -690,7 +758,7 @@ signInForm.addEventListener("submit", (e) => {
 });
 
 // Logout
-const logout = document.querySelector("#logout");
+const logout = document.querySelector("#log_out");
 
 logout.addEventListener("click", (e) => {
     e.preventDefault();
@@ -709,6 +777,10 @@ auth.onAuthStateChanged((user) => {
         loginCheck(user);
         setupPosts(true, user.email);
         addDate();
+        printUserData()
+        
+
+        
 
     } else {
 
@@ -717,3 +789,140 @@ auth.onAuthStateChanged((user) => {
 
     }
 });
+
+   let btnMenu = document.querySelector("#btn");
+   let sidebar = document.querySelector(".sidebar");
+   let searchBtn = document.querySelector(".bx-search");
+
+   btnMenu.onclick = function() {
+     sidebar.classList.toggle("active");
+   }
+   searchBtn.onclick = function() {
+     sidebar.classList.toggle("active");
+   }
+
+
+
+let name_details = document.getElementById("name_details");
+let userPic = document.getElementById("user_pic");
+const setUserData = (email,name) =>
+    name_details.innerHTML=`<div id="user_name" class="name">${name}</div>
+                         <div id="user_email" class="user_email">${email}</div>`
+    
+    ;
+
+
+
+async function printUserData(){
+    let user =  firebase.auth().currentUser;
+    //var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
+
+    const storage = firebase.storage();
+
+    await storage.ref('profile_picture/'+user.uid).getDownloadURL()
+      .then((url) => {
+        console.log(url);
+        userPic.src =  url;
+      })
+
+    //var forestRef = storageRef.child('profile_picture/'+ user.uid);
+    //console.log(forestRef)
+    //console.log(user.photoURL);
+    user.providerData.forEach((profile) => {
+        //console.log("Sign-in provider: " + profile.providerId);
+        //console.log("  Provider-specific UID: " + profile.uid);
+        let name =  profile.displayName;
+        let email = profile.email;
+        //let picture = profile.photoURL;
+        //console.log(user.uid)
+        setUserData(email,name)
+        console.log(userPic.src)
+        
+      });
+
+   
+}
+
+
+
+
+
+document.querySelectorAll(".drop-zone__input").forEach((inputElement) => {
+  const dropZoneElement = inputElement.closest(".drop-zone");
+
+  dropZoneElement.addEventListener("click", (e) => {
+    inputElement.click();
+  });
+
+  inputElement.addEventListener("change", (e) => {
+    if (inputElement.files.length) {
+      updateThumbnail(dropZoneElement, inputElement.files[0]);
+    }
+  });
+
+  dropZoneElement.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZoneElement.classList.add("drop-zone--over");
+  });
+
+  ["dragleave", "dragend"].forEach((type) => {
+    dropZoneElement.addEventListener(type, (e) => {
+      dropZoneElement.classList.remove("drop-zone--over");
+    });
+  });
+
+  dropZoneElement.addEventListener("drop", (e) => {
+    e.preventDefault();
+
+    if (e.dataTransfer.files.length && e.dataTransfer.files[0].type.startsWith("image/")) {
+      inputElement.files = e.dataTransfer.files;
+      updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
+      signUpIMG.push(e.dataTransfer.files[0]);
+    }
+
+    dropZoneElement.classList.remove("drop-zone--over");
+  });
+});
+
+/**
+ * Updates the thumbnail on a drop zone element.
+ *
+ * @param {HTMLElement} dropZoneElement
+ * @param {File} file
+ */
+function updateThumbnail(dropZoneElement, file) {
+  let thumbnailElement = dropZoneElement.querySelector(".drop-zone__thumb");
+
+  // First time - remove the prompt
+  if (dropZoneElement.querySelector(".drop-zone__prompt")) {
+    dropZoneElement.querySelector(".drop-zone__prompt").remove();
+  }
+
+  // First time - there is no thumbnail element, so lets create it
+  if (!thumbnailElement) {
+    thumbnailElement = document.createElement("div");
+    thumbnailElement.classList.add("drop-zone__thumb");
+    dropZoneElement.appendChild(thumbnailElement);
+  }
+
+  thumbnailElement.dataset.label = file.name;
+
+  // Show thumbnail for image files
+  if (file.type.startsWith("image/")) {
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      thumbnailElement.style.backgroundImage = `url('${reader.result}')`;
+    };
+  } else {
+    thumbnailElement.style.backgroundImage = null;
+  }
+}
+
+
+
+
+
+
+

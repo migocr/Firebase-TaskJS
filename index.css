@@ -9,9 +9,13 @@ body{
 
 
 .accordion{
-  max-width: 1200px;
-    margin: auto;
-    padding: 0em .5em;
+  max-width: 100%;
+  margin: auto;
+  
+}
+
+.card{
+  background: none;
 }
 
 .card-header{
@@ -20,11 +24,16 @@ body{
   border-bottom: none;
 }
 .card.sections{
-  border: none;
+      border: none;
+    display: inline-block;
+    vertical-align: top;
+    width: 32%;
+    padding: 5px;
+    min-width: 250px;
 }
 .btn.btn-link{
-  background-color:#18af63bd;
-  border-radius: 0.25rem 0.25rem 0px 0px;
+  background-color:#023357bd;
+  border-radius: 0;
   color: white;
   position: absolute;
   padding-bottom: 70px;
@@ -33,10 +42,10 @@ body{
 }
 
 .mb-0.header{
-  background-color: #f8f9fa;
-    position: relative;
-    height: 40px;
-    padding-left: .8em;
+  background-color: transparent;
+  position: relative;
+  height: 40px;
+  padding-left: .8em;
 }
 
 
@@ -51,18 +60,17 @@ body{
     border-left: .2em solid #52c28a!important;
     border-right: .2em solid #52c28a!important;
     margin-bottom: 10px;
-    border-radius: 1em;
-    
 }
 
 .tasks-container{
   background-color: #f8f9fa;
 }
 .card.card-body.border-left{
-  
+    background: white;
     display: inline-block;
     float: left;
     width: 100%;
+    box-shadow: 0px 2px 4px 1px #00000033;
 }
 btn.focus, .btn:focus {
     outline: 0;
@@ -70,13 +78,12 @@ btn.focus, .btn:focus {
 }
 
 .btn.btn-link.completed{
-  background-color: #527ac2;
+  background-color: #368a03;
 }
 .btn.btn-link.expired{
-  background-color: #62656b;
+  background-color: #464545;
 }
 div#collapseOne, div#collapseTwo, div#collapseThree {
-    background: #f8f9fa;
 }
 #oculto {
   -moz-transition: height .5s;
@@ -154,6 +161,53 @@ div#collapseOne, div#collapseTwo, div#collapseThree {
     margin-right: 1em;
 }
 
+.drop-zone {
+  max-width: 200px;
+  height: 200px;
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: "Quicksand", sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  cursor: pointer;
+  color: #cccccc;
+  border: 4px dashed #009578;
+  border-radius: 10px;
+}
+
+.drop-zone--over {
+  border-style: solid;
+}
+
+.drop-zone__input {
+  display: none;
+}
+
+.drop-zone__thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #cccccc;
+  background-size: cover;
+  position: relative;
+}
+
+.drop-zone__thumb::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 5px 0;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.75);
+  font-size: 14px;
+  text-align: center;
+}
 
 
 
