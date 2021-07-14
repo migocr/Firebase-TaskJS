@@ -846,9 +846,9 @@ async function printUserData(){
     //var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
 
     const storage = firebase.storage();
-    let imagenLocal = await storage.ref('profile_picture/'+user.uid).getDownloadURL()
-    if (imagenLocal) {
-
+   
+    if (storage.ref('profile_picture/'+user.uid).getDownloadURL()) {
+        let imagenLocal = await storage.ref('profile_picture/'+user.uid).getDownloadURL();
         let url = imagenLocal;
         userPic.src =  url;
       
