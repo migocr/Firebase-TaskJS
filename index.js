@@ -846,12 +846,18 @@ async function printUserData(){
     //var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
 
     const storage = firebase.storage();
+    let imagenLocal = await storage.ref('profile_picture/'+user.uid).getDownloadURL()
+    if (imagenLocal) {
 
-    await storage.ref('profile_picture/'+user.uid).getDownloadURL()
-      .then((url) => {
-        //console.log(url);
+        let url = imagenLocal;
         userPic.src =  url;
-      })
+      
+    } else{
+        let url = user.photoURL;
+        userPic.src =  url;
+    }
+     
+      
     let name = user.displayName;
     let email = user.email;
     name_details.innerHTML=`<div id="user_name" class="name">${name}</div>
