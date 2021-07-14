@@ -647,7 +647,8 @@ function fbsign(){
 
         // The signed-in user info.
         var user = result.user;
-        console.log("jalo")
+        console.log(user.email);
+        console.log(user.name)
         // This gives you a Facebook Access Token. You can use it to access the Facebook API.
         var accessToken = credential.accessToken;
 
@@ -659,6 +660,7 @@ function fbsign(){
         var errorCode = error.code;
         console.log(errorCode)
         var errorMessage = error.message;
+        console.log(errorMessage)
         // The email of the user's account used.
         var email = error.email;
         // The firebase.auth.AuthCredential type that was used.
