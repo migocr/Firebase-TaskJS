@@ -846,16 +846,32 @@ async function printUserData(){
     //var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
 
     const storage = firebase.storage();
-   
-    if (storage.ref('profile_picture/'+user.uid).getDownloadURL()) {
-        let imagenLocal = storage.ref('profile_picture/'+user.uid).getDownloadURL();
-        let url = imagenLocal;
-        userPic.src =  url;
-      
-    } else{
-        let url = user.photoURL;
-        userPic.src =  url;
-    }
+    var imgRef = storage.ref('profile_picture/'+user.uid);
+    imgRef.getDownloadURL().then(function(url) {
+          userPic.src =  url;
+        }).catch(function(error) {
+
+          // A full list of error codes is available at
+          // https://firebase.google.com/docs/storage/web/handle-errors
+          switch (error.code) {
+            case 'storage/object-not-found':
+               let urlPhoto = user.photoURL;
+               userPic.src =  urlPhoto;
+              break;
+
+            case 'storage/unauthorized':
+              // User doesn't have permission to access the object
+              break;
+
+            case 'storage/canceled':
+              // User canceled the upload
+              break;
+
+            case 'storage/unknown':
+              // Unknown error occurred, inspect the server response
+              break;
+          }
+        });
      
       
     let name = user.displayName;
