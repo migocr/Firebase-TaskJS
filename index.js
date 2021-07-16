@@ -132,6 +132,8 @@ async function editTask(id, email) {
 
 const getTask = (id) => db.collection("users").doc(id).get();
 
+
+
 const updateTask = (id, updatedTask) => db.collection('users').doc(id).update(updatedTask);
 
 //filtro por tareas completadas o no completadas
@@ -171,6 +173,19 @@ const filterOptions = filterMenu.querySelectorAll(".dropdown-item");
 
 
 
+async function getUserTasks(email){
+    let xxxx = (callback) => db.collection("users").doc(email).onSnapshot(callback);
+     xxxx((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            console.log(doc.data())
+        })
+    });
+
+   
+}
+
+
+
 const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, section, borderCard) => {
 
     section.innerHTML += `<div id="post" data-id="${i}" class="card card-body border-left" style="${borderCard}">
@@ -205,10 +220,15 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
               </div>`;
 };
 
-const setupPosts = async (e, email) => {
 
 
+
+async function setupPosts(e, email){
+
+    
+    
     onGetTasks((querySnapshot) => {
+        //console.log(querySnapshot.docs)
         tasksContainerPending.innerHTML = "";
         tasksContainerComplete.innerHTML = "";
         tasksContainerExpired.innerHTML = "";
@@ -455,12 +475,13 @@ const setupPosts = async (e, email) => {
         //update data
         const buttonUpdateTask = document.querySelector("#buttonUpdate");
         buttonUpdateTask.addEventListener("click", (e) => {
-            e.preventDefault();
+            //e.preventDefault();
             let id = (e.target.value);
             let tareas = tareasDelUsuario[0];
             modalEditTask.style.display = "none";
             let editedTitle = taskFormEdit["task-title"].value;
             let editedDescription = taskFormEdit["task-description"].value;
+            console.log(tareas[id]);
             tareas[id] = {
                 title: editedTitle,
                 description: editedDescription,
@@ -471,6 +492,7 @@ const setupPosts = async (e, email) => {
             db.collection("users").doc(email).update({
                 tasks: tareas
             });
+
         });
 
 
@@ -508,6 +530,32 @@ const setupPosts = async (e, email) => {
                 }
             })
         );
+
+        //add note/post
+        taskForm.addEventListener("submit", async (e) => {
+        addNewTask.style.display = "none";
+        //e.preventDefault();
+        var user = firebase.auth().currentUser;
+        var email = await user.email;
+        
+
+        console.log(email);
+
+        const title = taskForm["task-title"];
+        const description = taskForm["task-description"];
+        const date = taskForm["date-end"];
+
+        try {
+            await saveTask(email, title.value, description.value, date.value);
+            //await setupPosts(true, email);
+            taskForm.reset();
+
+            title.focus();
+        } catch (error) {
+            console.log(error);
+        }
+        addDate();
+    });
 
 
         //escucha el switch de status y lo cambia si se le da click
@@ -562,42 +610,7 @@ const setupPosts = async (e, email) => {
 
 
 
-taskForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    var user = firebase.auth().currentUser;
-    var email = await user.email;
-    
 
-    console.log(email);
-
-    const title = taskForm["task-title"];
-    const description = taskForm["task-description"];
-    const date = taskForm["date-end"];
-
-    try {
-        if (!editStatus) {
-
-            await saveTask(email, title.value, description.value, date.value);
-            await setupPosts(true, email)
-        } else {
-            await updateTask(tasks, {
-
-                title: title.value,
-                description: description.value,
-            })
-
-            editStatus = false;
-            id = '';
-            taskForm['btn-task-form'].innerText = 'Save';
-        }
-
-        taskForm.reset();
-        title.focus();
-    } catch (error) {
-        console.log(error);
-    }
-    addDate();
-});
 
 const register = document.getElementById('register');
 const login = document.getElementById('login');
@@ -725,7 +738,7 @@ signUpForm.addEventListener("submit", (e) => {
     
     
     
-    // Authenticate the User
+
     
     auth
         .createUserWithEmailAndPassword(email, password)
@@ -740,6 +753,20 @@ signUpForm.addEventListener("submit", (e) => {
             // close the modal
             modal.style.display = "none";
         })
+        .catch((error) => {
+            var errorCode = error.code;
+            if (errorCode == 'auth/email-already-in-use') {
+                console.log("correo en uso");
+                //pendiente programar muestra de errores en formulario
+            } else{
+                console.log("error desconocido");
+                //pendiente programar muestra de errores en formulario
+            }
+            
+            var errorMessage = error.message;
+            console.log(errorCode);
+            // ..
+          });
 
 
 
@@ -829,7 +856,21 @@ signInForm.addEventListener("submit", (e) => {
         // close the modal
         modalLogin.style.display = "none";
         setupPosts(true, email);
-    });
+    })
+    .catch((error) => {
+            var errorCode = error.code;
+            if (errorCode == 'auth/user-not-found') {
+                console.log("correo no encontrado");
+                //pendiente programar muestra de errores en formulario
+            } else if (errorCode == 'auth/wrong-password'){
+                console.log("password incorrecta");
+                //pendiente programar muestra de errores en formulario
+            }
+            
+            var errorMessage = error.message;
+            console.log(errorCode);
+            // ..
+          });
 });
 
 // Logout
@@ -852,8 +893,8 @@ auth.onAuthStateChanged((user) => {
         loginCheck(user);
         setupPosts(true, user.email);
         addDate();
-        printUserData()
-        
+        printUserData();
+        getUserTasks(user.email);
 
         
 
