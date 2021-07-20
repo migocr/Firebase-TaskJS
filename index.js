@@ -10,7 +10,7 @@ const tasksContainerComplete = document.getElementById("tasks-container-complete
 const tasksContainerExpired = document.getElementById("tasks-container-expired");
 const taskFormEdit = document.getElementById("task-form-edit");
 const visitorPage = document.getElementById("visitor");
-
+const modalAccount = document.getElementById("modal-account");
 const btnNewTask = document.getElementById("btnNewTask");
 const addNewTask = document.getElementById("modal-addNewTask");
 btnNewTask.addEventListener("click", async (e) => {
@@ -84,12 +84,20 @@ const loginCheck = (user) => {
  * @param {string} description the description of the Task
  */
 
+ const allTasksMenu = document.getElementById("allTasksMenu");
+ allTasksMenu.addEventListener("click", async function() {
+    let user = await firebase.auth().currentUser;
+    let email = user.email;
+    setupPosts(true,email);
+
+});
 
 
 
-const saveTask = (email, title, description, dateEnd) =>
 
-    db.collection("users").doc(email).update({
+
+async function saveTask(email, title, description, dateEnd){
+    await db.collection("users").doc(email).update({
 
 
         tasks: firebase.firestore.FieldValue.arrayUnion({
@@ -100,9 +108,12 @@ const saveTask = (email, title, description, dateEnd) =>
             date_end: dateEnd
 
         })
+        
+    })
+    setupPosts(true,email);
+}
 
-
-    });
+    
 
 
 
@@ -117,12 +128,16 @@ const onGetTasks = (callback) => db.collection("users").onSnapshot(callback);
 //var tareasDelUsuario = [];
 async function deleteTask(id, email, tareasDelUsuario) {
     console.log(id)
-    let tasks = tareasDelUsuario[0];
+    //todas las tareas
+    let tasks = tareasDelUsuario;
+    //tarea a borrar
     let task = tasks[id];
     var docRef = db.collection("users").doc(email);
     await docRef.update({
+        //remueve la terea[i] seleccionada
         tasks: firebase.firestore.FieldValue.arrayRemove(task)
     })
+    setupPosts(true,email);
 
 };
 async function editTask(id, email) {
@@ -173,23 +188,28 @@ const filterOptions = filterMenu.querySelectorAll(".dropdown-item");
 
 
 
-async function getUserTasks(email){
-    let xxxx = (callback) => db.collection("users").doc(email).onSnapshot(callback);
-     xxxx((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-            console.log(doc.data())
-        })
-    });
-
-   
-}
 
 
 
-const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, section, borderCard) => {
+const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, section, borderCard,endDate) => {
 
-    section.innerHTML += `<div id="post" data-id="${i}" class="card card-body border-left" style="${borderCard}">
+    var weekday = new Array(7);
+    weekday[0] = "Sunday";
+    weekday[1] = "Monday";
+    weekday[2] = "Tuesday";
+    weekday[3] = "Wednesday";
+    weekday[4] = "Thursday";
+    weekday[5] = "Friday";
+    weekday[6] = "Saturday";
 
+    var day = weekday[endDate.getDay()];
+
+
+    section.innerHTML += `<div data-id="${i}" class="card card-body border-left" style="${borderCard}">
+            <div class="col-2 text-right">
+                <h1 class="display-4"><span class="badge badge-secondary">${endDate.getDate()}</span></h1>
+                <h2>${endDate.toLocaleString('default', { month: 'short' }).toUpperCase(0)}</h2>
+            </div>
             
 
             <div id="postCheck"  class="round">
@@ -197,7 +217,17 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
               <label for="${taskTitle}" data-id="${i}" value ="${i}">
               </label>
             </div>
+            
+            
+            <div id="post" data-id="${i}">
             <h3 style="display:inline-block; padding-left:2em;" data-id="${i}" class="h5">${taskTitle}</h3>
+            <ul class="list-inline">
+                    <li class="list-inline-item"><i class="bx bxs-calendar-star" aria-hidden="true"></i> ${day}</li>
+                    <li class="list-inline-item"><i class="bx bx-alarm" aria-hidden="true"></i> ${endDate.toLocaleTimeString()}</li>
+                    
+            </ul>
+
+            </div>
             
               
 
@@ -222,42 +252,23 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
 
 
 
+async function setTasks(data,email,section){
+    tasksContainerPending.innerHTML = "";
+    tasksContainerComplete.innerHTML = "";
+    tasksContainerExpired.innerHTML = "";
 
-async function setupPosts(e, email){
-
-    
-    
-    onGetTasks((querySnapshot) => {
-        //console.log(querySnapshot.docs)
-        tasksContainerPending.innerHTML = "";
-        tasksContainerComplete.innerHTML = "";
-        tasksContainerExpired.innerHTML = "";
-        var tareasDelUsuario = [];
-        querySnapshot.forEach((doc) => {
-            let id = email;
-
-            const users = doc.data();
-            let tareas = users.tasks;
-            //console.log(users.user_data)
-
-
-            if (e) {
-                //let status = users.tasks[0].status;
-                //console.log(status);
-                if (doc.id == email && tareas) {
-                    //console.log(tareasDelUsuario)
-                    //var newtareas = new Date();
-
-                    tareas.sort(function(a, b) {
+    var tareas = data;
+    console.log(data)
+    tareas.sort(function(a, b) {
                         //console.log()
-                        let adiffTime = new Date(a.date_end) - new Date();
-                        let bdiffTime = new Date(b.date_end) - new Date();
-                        if (adiffTime > 0) {
-                            adiffTime = adiffTime * (-1)
-                        }
-                        if (bdiffTime > 0) {
-                            bdiffTime = bdiffTime * (-1)
-                        }
+    let adiffTime = new Date(a.date_end) - new Date();
+    let bdiffTime = new Date(b.date_end) - new Date();
+    if (adiffTime > 0) {
+        adiffTime = adiffTime * (-1)
+    }
+    if (bdiffTime > 0) {
+    bdiffTime = bdiffTime * (-1)
+    }
 
                         //console.log("new " + new Date(b.date_end))
                         //console.log(a.title + " " + diffTime)
@@ -265,78 +276,326 @@ async function setupPosts(e, email){
 
                     })
 
+    let pendingTaskCount = 0;
+    let completeTaskCount = 0;
+    let expiredTaskCount = 0;
 
-                    //newtareas.reverse();
-                    //console.log(tareas);
-                    tareasDelUsuario.push(tareas)
-
-
-                    //console.log(users.tasks)
-                    //console.log(tareasDelUsuario);
-                    let pendingTaskCount = 0;
-                    let completeTaskCount = 0;
-                    let expiredTaskCount = 0;
-                    for (var i = tareas.length - 1; i >= 0; i--) {
-
-                        //var reverseID = ((tareas.length-i)-1);
-
-
-
-
-                        let newDate = new Date();
-                        let endDate = new Date(tareas[i].date_end);
-
-                        var fechaInicio = new Date(newDate).getTime();
-                        var fechaFin = new Date(endDate).getTime();
-                        var diff = fechaFin - fechaInicio;
-                        var diffDias = diff / (1000 * 60 * 60 * 24);
-                        var diffHoras = (diff % (1000 * 60 * 60 * 24) / 3.6e+6);
-                        var diffMinutos = (diff % (1000 * 60 * 60 * 24) % 3.6e+6) / 60000;
-                        //console.log(tareas[i])
-                        //console.log("Dias ",Math.trunc(diffDias) ,"Horas ", Math.trunc(diffHoras) ,"Minutos " , Math.trunc(diffMinutos));
-                        if (newDate > endDate) {
-                            var task_at_time = ("Tarea caduco hace: " + Math.trunc(diffDias) * -1 + " Dias " + Math.trunc(diffHoras) * -1 + " Horas " + Math.trunc(diffMinutos) * -1 + " Minutos");
-                            var task_at_time_color = "alert-dark"
-                        } else if (new Date() == new Date(tareas[i].date_end)) {
+    for (var i = tareas.length - 1; i >= 0; i--) {
+        let newDate = new Date();
+        let endDate = new Date(tareas[i].date_end);
+        var fechaInicio = new Date(newDate).getTime();
+        var fechaFin = new Date(endDate).getTime();
+        var diff = fechaFin - fechaInicio;
+        var diffDias = diff / (1000 * 60 * 60 * 24);
+        var diffHoras = (diff % (1000 * 60 * 60 * 24) / 3.6e+6);
+        var diffMinutos = (diff % (1000 * 60 * 60 * 24) % 3.6e+6) / 60000;
+        
+        if (newDate > endDate) {
+            var task_at_time = ("Tarea caduco hace: " + Math.trunc(diffDias) * -1 + " Dias " + Math.trunc(diffHoras) * -1 + " Horas " + Math.trunc(diffMinutos) * -1 + " Minutos");
+            var task_at_time_color = "alert-dark"
+        } else if (new Date() == new Date(tareas[i].date_end)) {
                             //console.log("son iguales")
-                        } else {
-                            var task_at_time = ("Tiempo restante: " + Math.trunc(diffDias) + " Dias " + Math.trunc(diffHoras) + " Horas " + Math.trunc(diffMinutos) + " Minutos");
-                            var task_at_time_color = "alert-success"
-                        }
-                        if (tareas[i].status) {
-                            var checked = "checked";
-                            var task_at_time_color = "alert-primary"
-                            //console.log("es true")
-                        } else {
-                            var checked = "";
-                        }
+        } else {
+            var task_at_time = ("Tiempo restante: " + Math.trunc(diffDias) + " Dias " + Math.trunc(diffHoras) + " Horas " + Math.trunc(diffMinutos) + " Minutos");
+            var task_at_time_color = "alert-success"
+        }
+        if (tareas[i].status) {
+            var checked = "checked";
+            var task_at_time_color = "alert-primary"
+            //console.log("es true")
+        } else {
+            var checked = "";
+        }
 
 
-                        let taskTitle = tareas[i].title;
-                        if (taskTitle) {
-                            taskTitle = taskTitle[0].toUpperCase() + taskTitle.slice(1);
-                        }
+        let taskTitle = tareas[i].title;
+        if (taskTitle) {
+            taskTitle = taskTitle[0].toUpperCase() + taskTitle.slice(1);
+            }
+        if (section == "buscar") {
+            //imprime solo busqueda
+        } else{
+            //imprime todo
+        }
 
                         //console.log(taskTitle)
-                        let taskDescription = tareas[i].description;
-                        if (endDate >= newDate && !tareas[i].status) {
-                            pendingTaskCount++;
+        let taskDescription = tareas[i].description;
+        if (endDate >= newDate && !tareas[i].status) {
+            pendingTaskCount++;
                             //console.log(pendingTaskCount)
-                            let borderCard = "border-color: #52c28a!important";
-                            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerPending, borderCard);
-                        } else if (tareas[i].status) {
-                            completeTaskCount++
-                            let borderCard = "border-color: #527ac2!important";
-                            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerComplete, borderCard);
+            let borderCard = "border-color: #52c28a!important";
+            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerPending, borderCard,endDate);
+        } else if (tareas[i].status) {
+            completeTaskCount++
+            let borderCard = "border-color: #527ac2!important";
+            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerComplete, borderCard,endDate);
 
-                        } else if (newDate > endDate) {
-                            expiredTaskCount++
-                            let borderCard = "border-color: #62656b!important";
-                            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerExpired, borderCard);
+        } else if (newDate > endDate) {   
+            expiredTaskCount++
+            let borderCard = "border-color: #62656b!important";
+            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerExpired, borderCard,endDate);
+        }
+
+    }
+    
+    document.getElementById("taskCompleteCount").innerHTML=`${completeTaskCount} Tasks Complete`;
+    document.getElementById("taskExpiredCount").innerHTML=`${expiredTaskCount} Tasks Expired`;
+    document.getElementById("taskPendingCount").innerHTML=`${pendingTaskCount} Tasks Pending`;
+
+    const postCard = document.querySelectorAll("#post");
+        postCard.forEach((pCard) =>
+            pCard.addEventListener("click", (e) => {
+
+                var oculto = document.querySelectorAll("#oculto");
+                //console.log(e.target.dataset.id)
+                var id = e.target.dataset.id;
+                for (var i = oculto.length - 1; i >= 0; i--) {
+                    //console.log(oculto[i].dataset.id)
+                    if (oculto[i].dataset.id == e.target.dataset.id) {
+                        //console.log(oculto[i].clientHeight)
+                        oculto[i].style.height = "200px";
+                        if (oculto[i].clientHeight == 0) {
+                            oculto[i].style.height = "200px";
+                            //oculto[i].style="display: inline-block; height:auto; animation: 3s fadeIn; animation-fill-mode: forwards;";
+                        } else {
+                            oculto[i].style.height = "0px";
+                            //oculto[i].style="display:none; animation:.5s fadeIn; animation-fill-mode: forwards;";
                         }
 
+                    }
+                }
 
-                        //console.log(menuSelected)
+
+                try {
+
+
+
+                } catch (error) {
+                    console.log(error);
+                }
+            })
+        );
+
+const btnsDelete = tasksContainer.querySelectorAll(".btn-delete");
+        btnsDelete.forEach((btn) =>
+            btn.addEventListener("click", async (e) => {
+                //console.log(tareasDelUsuario);
+                try {
+                   console.log(e.target.dataset.id, email, tareas);
+
+
+                    deleteTask(e.target.dataset.id, email, tareas);
+                } catch (error) {
+                    //console.log(error);
+                }
+            })
+        );
+
+
+
+const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
+        btnsEdit.forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+                try {
+                    document.getElementById("buttonUpdate").value = e.target.dataset.id;
+                    //console.log(users.tasks[e.target.dataset.id]);
+                    taskFormEdit["task-title"].value = tareas[e.target.dataset.id].title;
+                    taskFormEdit["task-description"].value = tareas[e.target.dataset.id].description;
+                    modalEditTask.style.display = "block";
+
+                } catch (error) {
+                    console.log(error);
+                }
+
+            });
+
+        });
+
+
+
+        
+
+        
+
+
+        //escucha el switch de status y lo cambia si se le da click
+        const btnStatus = document.querySelectorAll(".checkbox-circle");
+        const postCheck = document.querySelectorAll("div#postCheck");
+        //console.log("btn status" + btnStatus.length);
+
+        postCheck.forEach((btnStat) =>
+            btnStat.addEventListener("click", async(e) => {
+                
+                console.log(e.target.dataset.id)
+                var id = (e.target.dataset.id);
+                //console.log(tareasDelUsuario[e.target])
+                try {
+                   
+                    let taskStatus = tareas[id].status;
+                    let taskTitle = tareas[id].title;
+                    let taskDescription = tareas[id].description;
+                    let taskDate = tareas[id].date;
+                    let taskDateEnd = tareas[id].date_end;
+                    tareas[id] = {
+                        title: taskTitle,
+                        description: taskDescription,
+                        status: !taskStatus,
+                        date: taskDate,
+                        date_end: taskDateEnd
+                    };
+
+
+                    //console.log(e.target.dataset.id)
+                    //console.log({title: taskTitle, description: taskDescription,status:taskStatus});
+
+
+
+                    await db.collection("users").doc(email).update({
+                        tasks: tareas
+                    })
+                    setupPosts(true,email);
+                    
+
+
+
+                } catch (error) {
+                    console.log(error);
+                }
+                
+            })
+        );
+           
+}
+
+
+//add note/post
+        taskForm.addEventListener("submit", async (e) => {
+        addNewTask.style.display = "none";
+        e.preventDefault();
+        let user = firebase.auth().currentUser;
+        let email = user.email;
+        
+        var title = taskForm["task-title"];
+        var description = taskForm["task-description"];
+        var date = taskForm["date-end"];
+
+        try {
+            await saveTask(email, title.value, description.value, date.value);
+            //await setupPosts(true, email);
+            taskForm.reset();
+
+            title.focus();
+        } catch (error) {
+            console.log(error);
+        }
+        addDate();
+        
+    });
+
+
+//update data
+        const buttonUpdateTask = document.querySelectorAll("#buttonUpdate");
+        buttonUpdateTask.forEach((btnUpdateTask) => {
+        btnUpdateTask.addEventListener("click", async (e) => {
+            //e.preventDefault();
+            let id = e.target.value;
+
+           
+            modalEditTask.style.display = "none";
+            let editedTitle = taskFormEdit["task-title"].value;
+            let editedDescription = taskFormEdit["task-description"].value;
+            let user = firebase.auth().currentUser;
+            let email = user.email;
+            var newTasks = [];
+            var tasksRef = db.collection("users").doc(email);
+            await tasksRef.get().then( async(doc) => {
+                if (doc.exists) {
+                    console.log("Document data:", doc.data());
+                    var tareas = doc.data().tasks;
+                    newTasks.push(tareas);
+                    tareas.sort( async function(a, b) {
+                        //console.log()
+                    let adiffTime = new Date(a.date_end) - new Date();
+                    let bdiffTime = new Date(b.date_end) - new Date();
+                    if (adiffTime > 0) {
+                        adiffTime = adiffTime * (-1)
+                    }
+                    if (bdiffTime > 0) {
+                    bdiffTime = bdiffTime * (-1)
+                    }
+
+                                        //console.log("new " + new Date(b.date_end))
+                                        //console.log(a.title + " " + diffTime)
+                    return await (new Date(adiffTime) - new Date(bdiffTime))
+
+                    })
+                    console.log(tareas[id]);
+                    tareas[id] = {
+                        title: editedTitle,
+                        description: editedDescription,
+                        status: tareas[id].status,
+                        date: tareas[id].date,
+                        date_end: tareas[id].date_end
+                    };
+                    await db.collection("users").doc(email).update({
+                        tasks: tareas
+                    });
+                    setupPosts(true,email);
+
+                    
+                } else {
+                    // doc.data() will be undefined in this case
+                    console.log("No such document!");
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+            setupPosts(true,email)
+
+        })
+    });
+
+
+
+
+
+//config.js 
+getUserTasks = async (email) => {
+    var db = firebase.firestore();
+    var docRef = db.collection("users").doc(email);
+    try {
+        var doc = await docRef.get()
+        if (doc.exists) {
+            console.log(doc.data()); //see below for doc object
+            return doc.data();
+        } else {
+            console.log("No such document!");
+        }
+    } catch (error) {
+        console.log("Error getting document:", error);
+    };
+};
+
+
+
+async function setupPosts(e, email){
+
+    var userData = await getUserTasks(email);
+    console.log(userData);
+    
+    if (userData) {
+        setTasks(userData.tasks,email);
+        console.log("Document data:");
+            
+        } else {
+            // doc.data() will be undefined in this case
+            console.log("No such document!");
+        }
+    
+    
+    
+    
+      
                         /*
             let filterButt1 = filterButtonText[0].textContent;
             let filterButt2 = filterButtonText[1].textContent;
@@ -407,204 +666,8 @@ async function setupPosts(e, email){
 
 
 
-                    }
-                    document.getElementById("taskCompleteCount").innerHTML=`${completeTaskCount} Tasks Complete`;
-                    document.getElementById("taskExpiredCount").innerHTML=`${expiredTaskCount} Tasks Expired`;
-                    document.getElementById("taskPendingCount").innerHTML=`${pendingTaskCount} Tasks Pending`;
-                    //console.log(completeTaskCount)
-
-                } else {
-
-                }
 
 
-
-            } else {
-
-                tasksContainer.innerHTML += `NO DATA`;
-            }
-
-
-        });
-
-        const btnsDelete = tasksContainer.querySelectorAll(".btn-delete");
-        btnsDelete.forEach((btn) =>
-            btn.addEventListener("click", async (e) => {
-                //console.log(tareasDelUsuario);
-                try {
-                    //console.log(tareasDelUsuario)
-
-                    await deleteTask(e.target.dataset.id, email, tareasDelUsuario);
-                } catch (error) {
-                    //console.log(error);
-                }
-            })
-        );
-
-
-
-        const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
-
-
-        btnsEdit.forEach((btn) => {
-            btn.addEventListener("click", async (e) => {
-                try {
-                    document.getElementById("buttonUpdate").value = e.target.dataset.id;
-
-                    let tasks = tareasDelUsuario[0];
-                    //console.log(users.tasks[e.target.dataset.id]);
-                    taskFormEdit["task-title"].value = tasks[e.target.dataset.id].title;
-                    taskFormEdit["task-description"].value = tasks[e.target.dataset.id].description;
-                    //let taskEditId = e.target.dataset.id;
-                    //editStatus = true;
-                    //id = email;
-                    //taskForm["btn-task-form"].innerText = "Update";
-                    modalEditTask.style.display = "block";
-                    //editTask(e.target.dataset.id.email)
-
-
-                } catch (error) {
-                    console.log(error);
-                }
-
-            });
-
-        });
-
-
-        //update data
-        const buttonUpdateTask = document.querySelector("#buttonUpdate");
-        buttonUpdateTask.addEventListener("click", (e) => {
-            //e.preventDefault();
-            let id = (e.target.value);
-            let tareas = tareasDelUsuario[0];
-            modalEditTask.style.display = "none";
-            let editedTitle = taskFormEdit["task-title"].value;
-            let editedDescription = taskFormEdit["task-description"].value;
-            console.log(tareas[id]);
-            tareas[id] = {
-                title: editedTitle,
-                description: editedDescription,
-                status: tareas[id].status,
-                date: tareas[id].date,
-                date_end: tareas[id].date_end
-            };
-            db.collection("users").doc(email).update({
-                tasks: tareas
-            });
-
-        });
-
-
-
-        const postCard = document.querySelectorAll("#post");
-        postCard.forEach((pCard) =>
-            pCard.addEventListener("click", (e) => {
-                e.preventDefault();
-                var oculto = document.querySelectorAll("#oculto");
-                //console.log(e.target.dataset.id)
-                var id = e.target.dataset.id;
-                for (var i = oculto.length - 1; i >= 0; i--) {
-                    //console.log(oculto[i].dataset.id)
-                    if (oculto[i].dataset.id == e.target.dataset.id) {
-                        //console.log(oculto[i].clientHeight)
-                        oculto[i].style.height = "200px";
-                        if (oculto[i].clientHeight == 0) {
-                            oculto[i].style.height = "200px";
-                            //oculto[i].style="display: inline-block; height:auto; animation: 3s fadeIn; animation-fill-mode: forwards;";
-                        } else {
-                            oculto[i].style.height = "0px";
-                            //oculto[i].style="display:none; animation:.5s fadeIn; animation-fill-mode: forwards;";
-                        }
-
-                    }
-                }
-
-
-                try {
-
-
-
-                } catch (error) {
-                    console.log(error);
-                }
-            })
-        );
-
-        //add note/post
-        taskForm.addEventListener("submit", async (e) => {
-        addNewTask.style.display = "none";
-        //e.preventDefault();
-        var user = firebase.auth().currentUser;
-        var email = await user.email;
-        
-
-        console.log(email);
-
-        const title = taskForm["task-title"];
-        const description = taskForm["task-description"];
-        const date = taskForm["date-end"];
-
-        try {
-            await saveTask(email, title.value, description.value, date.value);
-            //await setupPosts(true, email);
-            taskForm.reset();
-
-            title.focus();
-        } catch (error) {
-            console.log(error);
-        }
-        addDate();
-    });
-
-
-        //escucha el switch de status y lo cambia si se le da click
-        const btnStatus = document.querySelectorAll(".checkbox-circle");
-        const postCheck = document.querySelectorAll("#postCheck");
-        //console.log("btn status" + btnStatus.length);
-        postCheck.forEach((btnStat) =>
-            btnStat.addEventListener("click", async (e) => {
-                console.log(e.target.dataset.id)
-                var id = (e.target.dataset.id);
-                //console.log(tareasDelUsuario[e.target])
-                try {
-                    let tasks = tareasDelUsuario[0];
-                    console.log(tasks)
-                    let taskStatus = tasks[id].status;
-                    let taskTitle = tasks[id].title;
-                    let taskDescription = tasks[id].description;
-                    let taskDate = tasks[id].date;
-                    let taskDateEnd = tasks[id].date_end;
-                    tasks[id] = {
-                        title: taskTitle,
-                        description: taskDescription,
-                        status: !taskStatus,
-                        date: taskDate,
-                        date_end: taskDateEnd
-                    };
-
-
-                    //console.log(e.target.dataset.id)
-                    //console.log({title: taskTitle, description: taskDescription,status:taskStatus});
-
-
-
-                    db.collection("users").doc(email).update({
-                        tasks: tasks
-                    })
-
-
-
-                } catch (error) {
-                    console.log(error);
-                }
-            })
-        );
-
-
-
-
-    });
 };
 
 
@@ -696,18 +759,19 @@ googleButton.forEach((googleBtn) =>
             googleBtn.addEventListener("click", async (e) => {
                 e.preventDefault();
                 try {
-                    const provider = new firebase.auth.GoogleAuthProvider();
+                    var provider = new firebase.auth.GoogleAuthProvider();
                       auth.signInWithPopup(provider).then((result) => {
-                        console.log(result);
+                        console.log(result.user.email);
                         modalLogin.style.display = "none";
                         modal.style.display = "none";
                         //console.log("google sign in");
                         //console.log(result.user.email);
-                        if (db.collection("users").doc(user.email)) {
+                        if (db.collection("users").doc(result.user.email)) {
                             //evitamos borrar las tareas existentes
+                           
                         } else {
                             //creamos las primeras tareas
-                            defaultTask(user.email);
+                            defaultTask(result.user.email);
                         }
                       })
                       .catch(err => {
@@ -730,25 +794,21 @@ var signUpIMG = [];
 const signUpForm = document.querySelector("#signup-form");
 signUpForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const email = signUpForm["signup-email"].value;
-    const password = signUpForm["signup-password"].value;
-    const name = signUpForm["signup-name"].value;
-    
-
-    
-    
-    
-
-    
+    let email = signUpForm["signup-email"].value;
+    let password = signUpForm["signup-password"].value;
+    let name = signUpForm["signup-name"].value;
+    console.log(email, password, name)
     auth
         .createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
+
             //setupUserData(email,date,name);
             // clear the form
             signUpForm.reset();
-            setMoreData(name);
+            
 
             defaultTask(email);
+            setMoreData(name);
             
             // close the modal
             modal.style.display = "none";
@@ -774,21 +834,28 @@ signUpForm.addEventListener("submit", (e) => {
 });
 
 //pendiente dropear imagen funciona seleccionarla no
-function setMoreData(nombre){
+async function setMoreData(nombre){
     //console.log(name)
-    let nombreImg=signUpIMG[signUpIMG.length-1].name;
-    let extension = nombreImg.split('.').pop();
-    console.log(nombreImg)
-    let file = signUpIMG[signUpIMG.length-1];
-    let user = firebase.auth().currentUser;
-    //console.log(file);
+    let user = await firebase.auth().currentUser;
     var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
-    var task = storageRef.put(file);
+
+    if (signUpIMG.length>=1) {
+        let nombreImg=signUpIMG[signUpIMG.length-1].name;
+        let file = signUpIMG[signUpIMG.length-1];
+        var task = storageRef.put(file);
+    } else {
+    
+    }
+    
+    
+    //console.log(file);
+    
+    
 
     
-    user.updateProfile({
+    await user.updateProfile({
       displayName: nombre,
-      photoURL: "profile_picture/" + user.uid
+      providerId: "custom"
     }).then(() => {
       setTimeout(printUserData,3000);
     }).catch((error) => {
@@ -894,7 +961,7 @@ auth.onAuthStateChanged((user) => {
         setupPosts(true, user.email);
         addDate();
         printUserData();
-        getUserTasks(user.email);
+        console.log(user.providerId)
 
         
 
@@ -927,32 +994,38 @@ async function printUserData(){
     //var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
 
     const storage = firebase.storage();
-    var imgRef = storage.ref('profile_picture/'+user.uid);
-    imgRef.getDownloadURL().then(function(url) {
-          userPic.src =  url;
-        }).catch(function(error) {
+    console.log(user.photoURL)
+    if (user.photoURL == null) {
+        var imgRef = storage.ref('profile_picture/'+user.uid);
+        imgRef.getDownloadURL().then(function(url) {
+              userPic.src =  url;
+            }).catch(function(error) {
+                console.log()
+              // A full list of error codes is available at
+              // https://firebase.google.com/docs/storage/web/handle-errors
+              switch (error.code) {
+                case 'storage/object-not-found':
+                   let urlPhoto = "user_picture.png";
+                   userPic.src =  urlPhoto;
+                  break;
 
-          // A full list of error codes is available at
-          // https://firebase.google.com/docs/storage/web/handle-errors
-          switch (error.code) {
-            case 'storage/object-not-found':
-               let urlPhoto = user.photoURL;
-               userPic.src =  urlPhoto;
-              break;
+                case 'storage/unauthorized':
+                  // User doesn't have permission to access the object
+                  break;
 
-            case 'storage/unauthorized':
-              // User doesn't have permission to access the object
-              break;
+                case 'storage/canceled':
+                  // User canceled the upload
+                  break;
 
-            case 'storage/canceled':
-              // User canceled the upload
-              break;
-
-            case 'storage/unknown':
-              // Unknown error occurred, inspect the server response
-              break;
-          }
-        });
+                case 'storage/unknown':
+                  // Unknown error occurred, inspect the server response
+                  break;
+              }
+            });
+    } else{
+        userPic.src =  user.photoURL;
+    }
+    
      
       
     let name = user.displayName;
@@ -1041,6 +1114,60 @@ function updateThumbnail(dropZoneElement, file) {
     thumbnailElement.style.backgroundImage = null;
   }
 }
+
+
+
+
+var searchSection = document.getElementById("search-section");    
+var inputSearch = document.getElementById("search");
+let searchError = document.getElementById("search-error");
+inputSearch.addEventListener("keyup", async function(e) {
+
+    console.log("esta teclendo", inputSearch.value)
+    
+    let user = await firebase.auth().currentUser;
+    let email = user.email;
+    let data = await getUserTasks(email);
+    let tareas = data.tasks;
+    let results = [];
+    console.log(results);
+    searchError.style.display="none";
+    tasksContainer.style.display="inline-block";
+    
+    for (var i = tareas.length - 1; i >= 0; i--) {
+        var final = tareas[i].title.includes(inputSearch.value);
+        console.log(inputSearch.value.length)
+        if (final == true && inputSearch.value.length > 0) {     
+            results.push(tareas[i]);
+        } else{
+           
+        }
+               
+    }
+    if (results.length==0) {
+        console.log("no hay resultados de busqueda para ", inputSearch.value);
+        searchError.style.display="inline-block";
+        tasksContainer.style.display="none";
+        
+
+    } else{
+        await setTasks(results,email,searchSection);
+    }
+    if (inputSearch.value.length == 0) {
+        await setTasks(tareas,email,searchSection);
+        tasksContainer.style.display="inline-block";
+        searchError.style.display="none";
+
+    }
+    
+    
+    
+            
+        
+
+});
+
+
 
 
 

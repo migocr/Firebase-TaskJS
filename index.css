@@ -1,3 +1,12 @@
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 body{
   transition:all .5s ease-in-out; 
     -o-transition:all .5s ease-in-out; 
@@ -93,11 +102,14 @@ div#collapseOne, div#collapseTwo, div#collapseThree {
   transition: height .5s;
   height: .1px;
   overflow: hidden;
+  font-size: 1rem;
 }
 #modal-addNewTask{
   display: none;
 }
-
+#post h3{
+  max-width: 83%;
+}
 
 
 
@@ -256,7 +268,46 @@ div#collapseOne, div#collapseTwo, div#collapseThree {
 
 
 
+body {
+    background-color: #B3E5FC;
+    border-radius: 10px
+}
+ 
 
+
+
+
+
+
+
+.list-inline {
+    padding-left: 0;
+    list-style: none;
+    font-size: .5em;
+}
+
+.text-right {
+        width: auto;
+    font-size: 1px;
+    height: 0%;
+    float: right;
+    padding: 0px;
+    margin: 0px;
+}
+.display-4 {
+    font-size: 1.5rem;
+    font-weight: 300;
+}
+.col-2.text-right h2,h1{
+    font-size: 1rem!important;
+}
+.badge{
+      width: -webkit-fill-available;
+}
+
+.alert{
+  font-size: .6em;
+}
 
 
 
