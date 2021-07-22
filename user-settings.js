@@ -27,7 +27,7 @@ accountMenu.addEventListener("click", async function() {
     modalAccount.style.display="block";
 });
 
-const user = firebase.auth().currentUser;
+
 
 document.getElementById('btnDeletAcc');
 btnDeletAcc.addEventListener("click", async (e) => {
@@ -81,13 +81,52 @@ async function deleteAccount(credential,email,password){
       // ...
     });
 
-
-
-
-
-
-    
-
-   
 }
 
+modalNewPassword = document.getElementById("modalNewPassword");
+btnChangePass = document.getElementById("change-password");
+btnChangePass.addEventListener("click", async function(e){
+    e.preventDefault();
+    modalNewPassword.style.display="inline-block";
+    modalAccount.style.display="none";
+    //modalLogin.dataset.value = "reAuthDeleteUser"
+    
+});
+
+const newPassInput= document.getElementById("new-password-input");
+const btnNewPass = document.getElementById("btnNewPasswordField");
+btnNewPass.addEventListener("click", async function(e){
+    e.preventDefault();
+    modalLogin.dataset.value = "changePassword"
+    modalNewPassword.style.display="none";
+    modalLogin.style.display="inline-block";
+
+
+    console.log(newPassInput.value)
+});
+
+async function changePassword(credential,email,password){
+    let newPassword = newPassInput.value;
+    const user = await firebase.auth().currentUser;
+    if (credential == null) {
+        console.log("si entra;")
+        var credential = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        password
+        );
+        console.log(credential)
+    }
+    
+    
+
+    //const credential = promptForCredentials();
+
+    user.reauthenticateWithCredential(credential).then(() => {
+      // User re-authenticated.
+      user.updatePassword(newPassword).then(() => {console.log("si jalo we jaja")}).catch((error) => {console.log(error);});
+    }).catch((error) => {
+      // An error ocurred
+      // ...
+    });
+
+}

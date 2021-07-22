@@ -732,6 +732,8 @@ function fbsign(){
         }
         if (modalLogin.dataset.value == "reAuthDeleteUser") {
             deleteAccount(credential);
+        } else if (modalLogin.dataset.value == "changePassword") {
+            changePassword(credential);
         }
         modalLogin.style.display = "none";
         modal.style.display = "none";
@@ -789,12 +791,14 @@ googleButton.forEach((googleBtn) =>
 
                                
 
+                            } else if (modalLogin.dataset.value =="changePassword") {
+                                changePassword(credential);
                             } else{
-                                //creamos las primeras tareas
+                                
                                 
                             }
                         } else {
-                            
+                            //creamos las primeras tareas
                             defaultTask(result.user.email);
                             
                         }
@@ -961,6 +965,8 @@ async function login(email,password,source){
         } else if (source == "reAuthDeleteUser") {
             if (true) {}
             deleteAccount(null,email,password);
+        } else if(source =="changePassword"){
+            changePassword(null, email,password);
         }
         
         
