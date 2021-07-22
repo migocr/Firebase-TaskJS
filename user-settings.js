@@ -8,17 +8,27 @@ var confirmationSection = document.getElementById("change-confirm")
 accountMenu.addEventListener("click", async function() {
     let user = await firebase.auth().currentUser;
     
-    console.log(user);
+    //console.log(user);
     
     console.log("lo escucha");
-    modalAccount.querySelector("#photoURL").src=user.photoURL;
+    let picture = await getPicture(user.photoURL,user);
+    
+    if (picture == null || picture == undefined) {
+       
+    } else{
+        
+        modalAccount.querySelector("#photoURL").src=picture;
+    }
+
+
+ 
     modalAccount.querySelector("#user").innerHTML=`${user.displayName}`
     modalAccount.querySelector("#email").innerHTML=`${user.email}` 
     modalAccount.style.display="block";
 });
 
 const user = firebase.auth().currentUser;
-console.log("user settings");
+
 document.getElementById('btnDeletAcc');
 btnDeletAcc.addEventListener("click", async (e) => {
     confirmationSection.style.display="block"
@@ -29,7 +39,11 @@ btnDeletAcc.addEventListener("click", async (e) => {
                 console.log(e.target.value);
                 if (e.target.value == "true") {
                     console.log("es true");
-                    await deleteAccount();
+                    
+                    modalAccount.style.display="none";
+                    modalLogin.dataset.value = "reAuthDeleteUser"
+                    modalLogin.style.display="inline-block"
+                    //await deleteAccount();
                 } else if (e.target.value == "false") {
                     console.log("es false")
                     confirmationSection.style.display="none"
@@ -44,15 +58,36 @@ btnCloseAccountMenu.addEventListener("click", async function(){
 	modalAccount.style.display="none";
 })
 
-async function deleteAccount(){
+async function deleteAccount(credential,email,password){
     const user = await firebase.auth().currentUser;
+    if (credential == null) {
+        console.log("si entra;")
+        var credential = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        password
+        );
+        console.log(credential)
+    }
+    
+    
 
-    user.delete().then(() => {
-      console.log("usuario borrado");
+    //const credential = promptForCredentials();
+
+    user.reauthenticateWithCredential(credential).then(() => {
+      // User re-authenticated.
+      user.delete().then(() => {console.log("usuario borrado")}).catch((error) => {console.log("error al borrar")});
     }).catch((error) => {
-        console.log(error);
       // An error ocurred
       // ...
     });
+
+
+
+
+
+
+    
+
+   
 }
 

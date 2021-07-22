@@ -258,7 +258,7 @@ async function setTasks(data,email,section){
     tasksContainerExpired.innerHTML = "";
 
     var tareas = data;
-    console.log(data)
+    //console.log(data)
     tareas.sort(function(a, b) {
                         //console.log()
     let adiffTime = new Date(a.date_end) - new Date();
@@ -529,7 +529,7 @@ const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
                     return await (new Date(adiffTime) - new Date(bdiffTime))
 
                     })
-                    console.log(tareas[id]);
+                    //console.log(tareas[id]);
                     tareas[id] = {
                         title: editedTitle,
                         description: editedDescription,
@@ -566,7 +566,7 @@ getUserTasks = async (email) => {
     try {
         var doc = await docRef.get()
         if (doc.exists) {
-            console.log(doc.data()); //see below for doc object
+            //console.log(doc.data()); //see below for doc object
             return doc.data();
         } else {
             console.log("No such document!");
@@ -581,7 +581,7 @@ getUserTasks = async (email) => {
 async function setupPosts(e, email){
 
     var userData = await getUserTasks(email);
-    console.log(userData);
+    //console.log(userData);
     
     if (userData) {
         setTasks(userData.tasks,email);
@@ -676,7 +676,7 @@ async function setupPosts(e, email){
 
 
 const register = document.getElementById('register');
-const login = document.getElementById('login');
+
 const modal = document.getElementById('modal');
 const modalLogin = document.getElementById('modalLogin');
 const modalEditTask = document.getElementById('modal-edit-task');
@@ -703,8 +703,9 @@ btnCloseAddNewTask.addEventListener("click", function() {
     addNewTask.style.display = "none";
 })
 
-login.addEventListener("click", function() {
+loginMenu.addEventListener("click", function() {
     modalLogin.style.display = "block";
+    modalLogin.dataset.value="home-login";
 
 })
 
@@ -762,16 +763,37 @@ googleButton.forEach((googleBtn) =>
                     var provider = new firebase.auth.GoogleAuthProvider();
                       auth.signInWithPopup(provider).then((result) => {
                         console.log(result.user.email);
+                        console.log(result);
                         modalLogin.style.display = "none";
                         modal.style.display = "none";
                         //console.log("google sign in");
                         //console.log(result.user.email);
+                        if (result.credential) {
+                          /** @type {firebase.auth.OAuthCredential} */
+                          var credential = result.credential;
+
+                          // This gives you a Google Access Token. You can use it to access the Google API.
+                          var token = credential.accessToken;
+                          // ...
+                        }
+                        // The signed-in user info.
+                        var user = result.user;
                         if (db.collection("users").doc(result.user.email)) {
                             //evitamos borrar las tareas existentes
-                           
+                            if (modalLogin.dataset.value =="reAuthDeleteUser" ) {
+                                deleteAccount(credential);
+
+
+                               
+
+                            } else{
+                                //creamos las primeras tareas
+                                
+                            }
                         } else {
-                            //creamos las primeras tareas
+                            
                             defaultTask(result.user.email);
+                            
                         }
                       })
                       .catch(err => {
@@ -854,8 +876,7 @@ async function setMoreData(nombre){
 
     
     await user.updateProfile({
-      displayName: nombre,
-      providerId: "custom"
+      displayName: nombre
     }).then(() => {
       setTimeout(printUserData,3000);
     }).catch((error) => {
@@ -911,18 +932,35 @@ function defaultTask(email ){
 
 const signInForm = document.querySelector("#login-form");
 
-signInForm.addEventListener("submit", (e) => {
+signInForm.addEventListener("submit", async(e) => {
+    let source = modalLogin.dataset.value;
+    
     e.preventDefault();
     const email = signInForm["login-email"].value;
     const password = signInForm["login-password"].value;
+    
+    await login(email,password,source);
+    
+    
+});
 
+
+async function login(email,password,source){
     // Authenticate the User
-    auth.signInWithEmailAndPassword(email, password).then((userCredential) => {
+    await auth.signInWithEmailAndPassword(email, password).then((userCredential) => {
+
         // clear the form
         signInForm.reset();
         // close the modal
-        modalLogin.style.display = "none";
-        setupPosts(true, email);
+        if (source == "home-login") {
+            modalLogin.style.display = "none";
+            setupPosts(true,email);
+        } else if (source == "reAuthDeleteUser") {
+            if (true) {}
+            deleteAccount(null,email,password);
+        }
+        
+        
     })
     .catch((error) => {
             var errorCode = error.code;
@@ -938,7 +976,7 @@ signInForm.addEventListener("submit", (e) => {
             console.log(errorCode);
             // ..
           });
-});
+}
 
 // Logout
 const logout = document.querySelector("#log_out");
@@ -961,7 +999,7 @@ auth.onAuthStateChanged((user) => {
         setupPosts(true, user.email);
         addDate();
         printUserData();
-        console.log(user.providerId)
+        //console.log(user.providerData)
 
         
 
@@ -993,38 +1031,16 @@ async function printUserData(){
     let user =  firebase.auth().currentUser;
     //var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
 
-    const storage = firebase.storage();
-    console.log(user.photoURL)
-    if (user.photoURL == null) {
-        var imgRef = storage.ref('profile_picture/'+user.uid);
-        imgRef.getDownloadURL().then(function(url) {
-              userPic.src =  url;
-            }).catch(function(error) {
-                console.log()
-              // A full list of error codes is available at
-              // https://firebase.google.com/docs/storage/web/handle-errors
-              switch (error.code) {
-                case 'storage/object-not-found':
-                   let urlPhoto = "user_picture.png";
-                   userPic.src =  urlPhoto;
-                  break;
+    
+    //console.log(user.photoURL)
+    
+    let picture = await getPicture(user.photoURL,user);
+    if (picture == null) {
 
-                case 'storage/unauthorized':
-                  // User doesn't have permission to access the object
-                  break;
-
-                case 'storage/canceled':
-                  // User canceled the upload
-                  break;
-
-                case 'storage/unknown':
-                  // Unknown error occurred, inspect the server response
-                  break;
-              }
-            });
     } else{
-        userPic.src =  user.photoURL;
+        userPic.src = picture;
     }
+    
     
      
       
@@ -1036,6 +1052,21 @@ async function printUserData(){
     //console.log(forestRef)
     //console.log(user.photoURL);
    
+}
+
+async function getPicture(picture,user){
+    const storage = firebase.storage();
+    if (picture == null) {
+        var imgRef = await storage.ref('profile_picture/'+user.uid).getDownloadURL().catch(function(error) {});
+        if (imgRef == null) {
+            return "user_picture.png"
+        }else {
+            return imgRef;
+        }
+    } else{
+        return user.photoURL
+        //userPic.src =  user.photoURL;
+    }
 }
 
 
