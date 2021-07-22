@@ -730,6 +730,9 @@ function fbsign(){
             //creamos las primeras tareas
             defaultTask(user.email);
         }
+        if (modalLogin.dataset.value == "reAuthDeleteUser") {
+            deleteAccount(credential);
+        }
         modalLogin.style.display = "none";
         modal.style.display = "none";
         //setupPosts(true);
