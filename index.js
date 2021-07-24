@@ -93,6 +93,21 @@ const loginCheck = (user) => {
 });
 
 
+ const dateMenuSection = document.querySelectorAll("#date-menu");
+    dateMenuSection.forEach((dateMenu) =>
+      dateMenu.addEventListener("click", async (e) => {
+        e.preventDefault();
+        let filter = e.target.className;
+        let user = await firebase.auth().currentUser;
+        let email = user.email;
+        //console.log(filtro)
+        setupPosts(true,email,filter);
+    })
+);
+
+
+
+
 
 
 
@@ -252,7 +267,7 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
 
 
 
-async function setTasks(data,email,section){
+async function setTasks(data,email,section,filter){
     tasksContainerPending.innerHTML = "";
     tasksContainerComplete.innerHTML = "";
     tasksContainerExpired.innerHTML = "";
@@ -289,6 +304,8 @@ async function setTasks(data,email,section){
         var diffDias = diff / (1000 * 60 * 60 * 24);
         var diffHoras = (diff % (1000 * 60 * 60 * 24) / 3.6e+6);
         var diffMinutos = (diff % (1000 * 60 * 60 * 24) % 3.6e+6) / 60000;
+
+
         
         if (newDate > endDate) {
             var task_at_time = ("Tarea caduco hace: " + Math.trunc(diffDias) * -1 + " Dias " + Math.trunc(diffHoras) * -1 + " Horas " + Math.trunc(diffMinutos) * -1 + " Minutos");
@@ -317,25 +334,70 @@ async function setTasks(data,email,section){
         } else{
             //imprime todo
         }
-
-                        //console.log(taskTitle)
         let taskDescription = tareas[i].description;
-        if (endDate >= newDate && !tareas[i].status) {
-            pendingTaskCount++;
-                            //console.log(pendingTaskCount)
-            let borderCard = "border-color: #52c28a!important";
-            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerPending, borderCard,endDate);
-        } else if (tareas[i].status) {
-            completeTaskCount++
-            let borderCard = "border-color: #527ac2!important";
-            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerComplete, borderCard,endDate);
+        var checkStatus = async() =>{
+            if (endDate >= newDate && !tareas[i].status) {
+                pendingTaskCount++;
+                                //console.log(pendingTaskCount)
+                let borderCard = "border-color: #52c28a!important";
+                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerPending, borderCard,endDate);
+            } else if (tareas[i].status) {
+                completeTaskCount++
+                let borderCard = "border-color: #527ac2!important";
+                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerComplete, borderCard,endDate);
 
-        } else if (newDate > endDate) {   
-            expiredTaskCount++
-            let borderCard = "border-color: #62656b!important";
-            printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerExpired, borderCard,endDate);
+            } else if (newDate > endDate) {   
+                expiredTaskCount++
+                let borderCard = "border-color: #62656b!important";
+                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerExpired, borderCard,endDate);
+            }
+        }
+        var checkWeekOfYear = async (date) => {
+            var oneJan = new Date(date.getFullYear(),0,1);
+            var numberOfDays = Math.floor((date - oneJan) / (24 * 60 * 60 * 1000));
+            var result = Math.ceil(( date.getDay() + 1 + numberOfDays) / 7);
+            return result;
         }
 
+
+        if (filter == undefined) {
+            checkStatus();
+
+        } else if(filter){
+            switch (filter) {
+              case "bx bx-calendar-edit":
+                if (endDate.getFullYear() == newDate.getFullYear() && endDate.getMonth() == newDate.getMonth() && endDate.getDate() == newDate.getDate()) {
+                  console.log("Si hay tareas para hoy")
+                  checkStatus();
+                }
+                break;
+              case "bx bx-calendar-week":
+                let endDateWeek = await checkWeekOfYear(endDate);
+                let thisWeek =  await checkWeekOfYear(newDate);
+                console.log(endDateWeek);
+                console.log(thisWeek);
+
+                if (thisWeek == endDateWeek)  {
+                  console.log(endDate.getDate())
+                  checkStatus();
+                }
+                break;
+              case "bx bx-calendar":
+                if (endDate.getFullYear() == newDate.getFullYear() && endDate.getMonth() == newDate.getMonth())  {
+                  //console.log(newDate.getDate())
+                  checkStatus();
+                }
+                break;
+              case "custom":
+                break;
+              default:
+                text = "No value found";
+            }
+        }
+
+                        //console.log(taskTitle)
+        
+        
     }
     
     document.getElementById("taskCompleteCount").innerHTML=`${completeTaskCount} Tasks Complete`;
@@ -464,6 +526,46 @@ const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
                 
             })
         );
+
+
+
+    //update data
+        const buttonUpdateTask = document.querySelectorAll("#buttonUpdate");
+        buttonUpdateTask.forEach((btnUpdateTask) => {
+        btnUpdateTask.addEventListener("click", async (e) => {
+            //e.preventDefault();
+            let id = e.target.value;
+            let editedTitle = taskFormEdit["task-title"].value;
+            let editedDescription = taskFormEdit["task-description"].value;
+            let user = firebase.auth().currentUser;
+            let email = user.email;
+
+            let taskStatus = tareas[id].status;
+            let taskTitle = tareas[id].title;
+            let taskDescription = tareas[id].description;
+            let taskDate = tareas[id].date;
+            let taskDateEnd = tareas[id].date_end;
+
+            tareas[id] = {
+                title: editedTitle,
+                description: editedDescription,
+                status: taskStatus,
+                date: taskDate,
+                date_end: taskDateEnd
+            }
+
+           
+            modalEditTask.style.display = "none";
+            await db.collection("users").doc(email).update({
+                        tasks: tareas
+                    });
+    
+                    
+            setupPosts(true,email);
+
+
+        })
+    });
            
 }
 
@@ -493,67 +595,7 @@ const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
     });
 
 
-//update data
-        const buttonUpdateTask = document.querySelectorAll("#buttonUpdate");
-        buttonUpdateTask.forEach((btnUpdateTask) => {
-        btnUpdateTask.addEventListener("click", async (e) => {
-            //e.preventDefault();
-            let id = e.target.value;
-
-           
-            modalEditTask.style.display = "none";
-            let editedTitle = taskFormEdit["task-title"].value;
-            let editedDescription = taskFormEdit["task-description"].value;
-            let user = firebase.auth().currentUser;
-            let email = user.email;
-            var newTasks = [];
-            var tasksRef = db.collection("users").doc(email);
-            await tasksRef.get().then( async(doc) => {
-                if (doc.exists) {
-                    console.log("Document data:", doc.data());
-                    var tareas = doc.data().tasks;
-                    newTasks.push(tareas);
-                    tareas.sort( async function(a, b) {
-                        //console.log()
-                    let adiffTime = new Date(a.date_end) - new Date();
-                    let bdiffTime = new Date(b.date_end) - new Date();
-                    if (adiffTime > 0) {
-                        adiffTime = adiffTime * (-1)
-                    }
-                    if (bdiffTime > 0) {
-                    bdiffTime = bdiffTime * (-1)
-                    }
-
-                                        //console.log("new " + new Date(b.date_end))
-                                        //console.log(a.title + " " + diffTime)
-                    return await (new Date(adiffTime) - new Date(bdiffTime))
-
-                    })
-                    //console.log(tareas[id]);
-                    tareas[id] = {
-                        title: editedTitle,
-                        description: editedDescription,
-                        status: tareas[id].status,
-                        date: tareas[id].date,
-                        date_end: tareas[id].date_end
-                    };
-                    await db.collection("users").doc(email).update({
-                        tasks: tareas
-                    });
-                    setupPosts(true,email);
-
-                    
-                } else {
-                    // doc.data() will be undefined in this case
-                    console.log("No such document!");
-                }
-            }).catch((error) => {
-                console.log("Error getting document:", error);
-            });
-            setupPosts(true,email)
-
-        })
-    });
+        
 
 
 
@@ -578,18 +620,20 @@ getUserTasks = async (email) => {
 
 
 
-async function setupPosts(e, email){
+async function setupPosts(e, email,filter){
+    console.log(filter)
 
     var userData = await getUserTasks(email);
     //console.log(userData);
     
     if (userData) {
-        setTasks(userData.tasks,email);
-        console.log("Document data:");
+        setTasks(userData.tasks,email,null,filter);
+        
             
         } else {
             // doc.data() will be undefined in this case
             console.log("No such document!");
+
         }
     
     
@@ -721,7 +765,7 @@ function fbsign(){
         
         /** @type {firebase.auth.OAuthCredential} */
         var credential = result.credential;
-
+        let source = modalLogin.dataset.value;
         // The signed-in user info.
         var user = result.user;
         if (db.collection("users").doc(user.email)) {
@@ -730,10 +774,12 @@ function fbsign(){
             //creamos las primeras tareas
             defaultTask(user.email);
         }
-        if (modalLogin.dataset.value == "reAuthDeleteUser") {
+        if (source == "reAuthDeleteUser") {
             deleteAccount(credential);
-        } else if (modalLogin.dataset.value == "changePassword") {
+        } else if (source == "changePassword") {
             changePassword(credential);
+        } else if (source == "changeEmail") {
+            changeEmail(credential);
         }
         modalLogin.style.display = "none";
         modal.style.display = "none";
@@ -771,6 +817,7 @@ googleButton.forEach((googleBtn) =>
                         console.log(result);
                         modalLogin.style.display = "none";
                         modal.style.display = "none";
+                        let source = modalLogin.dataset.value;
                         //console.log("google sign in");
                         //console.log(result.user.email);
                         if (result.credential) {
@@ -785,16 +832,16 @@ googleButton.forEach((googleBtn) =>
                         var user = result.user;
                         if (db.collection("users").doc(result.user.email)) {
                             //evitamos borrar las tareas existentes
-                            if (modalLogin.dataset.value =="reAuthDeleteUser" ) {
+                            if (source =="reAuthDeleteUser" ) {
                                 deleteAccount(credential);
 
 
                                
 
-                            } else if (modalLogin.dataset.value =="changePassword") {
+                            } else if (source =="changePassword") {
                                 changePassword(credential);
-                            } else{
-                                
+                            } else if(source ="changeEmail"){
+                                changeEmail(credential)
                                 
                             }
                         } else {
@@ -967,6 +1014,8 @@ async function login(email,password,source){
             deleteAccount(null,email,password);
         } else if(source =="changePassword"){
             changePassword(null, email,password);
+        } else if (source == "changeEmail") {
+            changeEmail(null,email,password)
         }
         
         
@@ -1006,6 +1055,7 @@ auth.onAuthStateChanged((user) => {
         //console.log("signin");
         loginCheck(user);
         setupPosts(true, user.email);
+        console.log(user.uid)
         addDate();
         printUserData();
         //console.log(user.providerData)
@@ -1044,11 +1094,16 @@ async function printUserData(){
     //console.log(user.photoURL)
     
     let picture = await getPicture(user.photoURL,user);
-    if (picture == null) {
-
+    if (picture == null || picture == undefined) {
+        console.log("la imagen es nula o indefinida")
     } else{
         userPic.src = picture;
+        modalAccount.querySelector("#photoURL").src=picture;
     }
+
+ 
+    modalAccount.querySelector("#user").innerHTML=`${user.displayName}`
+    modalAccount.querySelector("#email").innerHTML=`${user.email}` 
     
     
      
@@ -1064,18 +1119,19 @@ async function printUserData(){
 }
 
 async function getPicture(picture,user){
-    const storage = firebase.storage();
-    if (picture == null) {
-        var imgRef = await storage.ref('profile_picture/'+user.uid).getDownloadURL().catch(function(error) {});
-        if (imgRef == null) {
-            return "user_picture.png"
-        }else {
-            return imgRef;
-        }
-    } else{
+    const storage = await firebase.storage();
+    var imgRef = await storage.ref('profile_picture/'+user.uid).getDownloadURL().catch(function(error) {});
+
+    if (imgRef) {
+        return imgRef;
+    } else if (imgRef == null && picture) {
         return user.photoURL
-        //userPic.src =  user.photoURL;
+        
+    } else{
+        return "user_picture.png"
     }
+
+
 }
 
 
@@ -1148,11 +1204,22 @@ function updateThumbnail(dropZoneElement, file) {
     signUpIMG.push(file);
     reader.readAsDataURL(file);
     reader.onload = () => {
-      thumbnailElement.style.backgroundImage = `url('${reader.result}')`;
+        if (!(modalAccount.style.display == "none")) {
+            document.getElementById("photoURL").src=reader.result;
+            let user = firebase.auth().currentUser;
+            let name = user.name;
+            setMoreData(name);
+          } else {
+            thumbnailElement.style.backgroundImage = `url('${reader.result}')`;
+            
+          }
+      
     };
   } else {
     thumbnailElement.style.backgroundImage = null;
   }
+
+  
 }
 
 

@@ -56,7 +56,30 @@
         </a>
         <span class="tooltip">All Tasks</span>
       </li>
+      <li id="date-menu" value="today">
+        <a href="#">
+          <i class='bx bx-calendar-edit' ></i>
+          <span class="links_name">For today</span>
+        </a>
+        <span class="tooltip">Tasks for today</span>
+      </li>
+      <li id="date-menu" value="week">
+        <a href="#">
+          <i class='bx bx-calendar-week' ></i>
+          <span class="links_name">This Week</span>
+        </a>
+        <span class="tooltip">Tasks for this week</span>
+      </li>
+      <li id="date-menu" value="month">
+        <a href="#">
+          <i class='bx bx-calendar' ></i>
+          <span class="links_name">This month</span>
+        </a>
+        <span class="tooltip">Tasks for this month</span>
+      </li>
+      
       <li>
+
         <a id="btnNewTask" href="#">
           <i  class='bx bx-list-plus' ></i>
           <span class="links_name">New Task</span>
@@ -369,14 +392,30 @@
       </div>
       <div id="userSettingsBody" class="modal-body">
         <div>
-            <img id="photoURL" src="user_picture.png" class="rounded" width="155">
+          <div class="drop-zone account form-group"  >
+            <span class="drop-zone__prompt"></span>
+            <input type="file" name="myFile" class="drop-zone__input">
+            <div class="user-img-account rounded">
+
+              <img id="photoURL" src="user_picture.png">
+              <div class="overlay">
+                
+              </div>
+
+              <div id="btn-upload-image" class="btnUploadImage"><a href="#"><i class='bx bx-upload'></i>Upload</a></div>
+            </div>
+          </div>
+
+
+            
+            
             <h4 id="user"></h4> <span id="email"></span>
             <span>All Tasks: </span> <span id="userCountTasks">38</span> 
             <div> 
               <button id="btnDeletAcc">Delete Account</button> 
-              <button >Delete All Tasks</button> 
+              <button id="delete-all-tasks">Delete All Tasks</button> 
               <button id="change-password" >Change Password</button> 
-              <button >Change Email</button> 
+              <button id="change-email">Change Email</button> 
             </div>
 
         </div>
@@ -414,6 +453,36 @@
 
                   
                   <button id="btnNewPasswordField" class="btn btn-primary">Change Password</button>
+                </form>
+              </div>
+              <div class="modal-footer">
+                
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+  <div id="modal-new-email" style="display: none" class="modal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Set newt password</h5>
+                <i id="btn-close-login" class='bx bxs-x-circle'></i>
+                
+              </div>
+              <div class="modal-body">
+                <P>Para cambiar tu correo es necesario volver a loguearte</P>
+                <form>
+                  
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">Email address</label>
+                    <input type="email" class="form-control" id="change-email-input" aria-describedby="emailHelp" placeholder="Enter email">
+                  <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                  </div>
+
+                  
+                  <button id="btnNewEmaildField" type="submit" class="btn btn-primary">Change Email</button>
                 </form>
               </div>
               <div class="modal-footer">
