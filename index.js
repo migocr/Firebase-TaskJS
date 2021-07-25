@@ -8,6 +8,7 @@ const tasksContainer = document.getElementById("page-content");
 const tasksContainerPending = document.getElementById("tasks-container-pending");
 const tasksContainerComplete = document.getElementById("tasks-container-complete");
 const tasksContainerExpired = document.getElementById("tasks-container-expired");
+const tasksContainerWithoutDate = document.getElementById("tasks-container-without-date");
 const taskFormEdit = document.getElementById("task-form-edit");
 const visitorPage = document.getElementById("visitor");
 const modalAccount = document.getElementById("modal-account");
@@ -31,14 +32,14 @@ const addZero = (i) => {
 
 
 //console.log(newDefaultDate);
-
+/*
 async function addDate() {
     const defaultDate = document.getElementById('date-end');
     var dateNow = new Date();
     var newDefaultDate = new Date().toLocaleDateString('pt-br').split('/').reverse().join('-') + "T" + addZero(dateNow.getHours()) + ":" + addZero(dateNow.getMinutes());
     defaultDate.value = await newDefaultDate;
     return newDefaultDate;
-}
+}*/
 
 
 
@@ -128,17 +129,6 @@ async function saveTask(email, title, description, dateEnd){
     setupPosts(true,email);
 }
 
-    
-
-
-
-
-const getTasks = () => db.collection("users").get();
-
-//const onGetTasks = (callback) => db.collection("tasks").onSnapshot(callback);
-const onGetTasks = (callback) => db.collection("users").onSnapshot(callback);
-//const deleteTask = (id) => db.collection("users").doc(id.tasks).delete();
-
 
 //var tareasDelUsuario = [];
 async function deleteTask(id, email, tareasDelUsuario) {
@@ -155,16 +145,7 @@ async function deleteTask(id, email, tareasDelUsuario) {
     setupPosts(true,email);
 
 };
-async function editTask(id, email) {
 
-};
-
-
-const getTask = (id) => db.collection("users").doc(id).get();
-
-
-
-const updateTask = (id, updatedTask) => db.collection('users').doc(id).update(updatedTask);
 
 //filtro por tareas completadas o no completadas
 
@@ -216,14 +197,26 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
     weekday[4] = "Thursday";
     weekday[5] = "Friday";
     weekday[6] = "Saturday";
+    console.log(endDate);
+    if (endDate == null) {
+        var day = "NA";
+        var month ="NA";
+        var stringDay = "NA";
+        var time = "NA"
+    } else {
+        var stringDay = weekday[endDate.getDay()];
+        var month = endDate.toLocaleString('default', { month: 'short' }).toUpperCase(0);
+        var day = endDate.getDate();
+        var time = endDate.toLocaleTimeString();
 
-    var day = weekday[endDate.getDay()];
+    }
+    
 
 
     section.innerHTML += `<div data-id="${i}" class="card card-body border-left" style="${borderCard}">
             <div class="col-2 text-right">
-                <h1 class="display-4"><span class="badge badge-secondary">${endDate.getDate()}</span></h1>
-                <h2>${endDate.toLocaleString('default', { month: 'short' }).toUpperCase(0)}</h2>
+                <h1 class="display-4"><span class="badge badge-secondary">${day}</span></h1>
+                <h2>${month}</h2>
             </div>
             
 
@@ -237,8 +230,8 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
             <div id="post" data-id="${i}">
             <h3 style="display:inline-block; padding-left:2em;" data-id="${i}" class="h5">${taskTitle}</h3>
             <ul class="list-inline">
-                    <li class="list-inline-item"><i class="bx bxs-calendar-star" aria-hidden="true"></i> ${day}</li>
-                    <li class="list-inline-item"><i class="bx bx-alarm" aria-hidden="true"></i> ${endDate.toLocaleTimeString()}</li>
+                    <li class="list-inline-item"><i class="bx bxs-calendar-star" aria-hidden="true"></i> ${stringDay}</li>
+                    <li class="list-inline-item"><i class="bx bx-alarm" aria-hidden="true"></i> ${time}</li>
                     
             </ul>
 
@@ -274,26 +267,27 @@ async function setTasks(data,email,section,filter){
 
     var tareas = data;
     //console.log(data)
+    console.log(tareas);
     tareas.sort(function(a, b) {
-                        //console.log()
+    
     let adiffTime = new Date(a.date_end) - new Date();
     let bdiffTime = new Date(b.date_end) - new Date();
     if (adiffTime > 0) {
         adiffTime = adiffTime * (-1)
-    }
+        }
     if (bdiffTime > 0) {
     bdiffTime = bdiffTime * (-1)
-    }
-
-                        //console.log("new " + new Date(b.date_end))
-                        //console.log(a.title + " " + diffTime)
-                        return (new Date(adiffTime) - new Date(bdiffTime))
-
-                    })
+        }
+        //console.log("new " + new Date(b.date_end))
+        //console.log(a.title + " " + diffTime)
+        return (new Date(adiffTime) - new Date(bdiffTime))
+    })
+    console.log(tareas);
 
     let pendingTaskCount = 0;
     let completeTaskCount = 0;
     let expiredTaskCount = 0;
+    let withoutDateTasksCount = 0;
 
     for (var i = tareas.length - 1; i >= 0; i--) {
         let newDate = new Date();
@@ -350,6 +344,11 @@ async function setTasks(data,email,section,filter){
                 expiredTaskCount++
                 let borderCard = "border-color: #62656b!important";
                 printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerExpired, borderCard,endDate);
+            } else if (endDate == "Invalid Date" || endDate == undefined) {
+                withoutDateTasksCount++
+                let endDate = null;
+                let borderCard = "border-color: #62656b!important";
+                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerWithoutDate, borderCard,endDate);
             }
         }
         var checkWeekOfYear = async (date) => {
@@ -403,6 +402,7 @@ async function setTasks(data,email,section,filter){
     document.getElementById("taskCompleteCount").innerHTML=`${completeTaskCount} Tasks Complete`;
     document.getElementById("taskExpiredCount").innerHTML=`${expiredTaskCount} Tasks Expired`;
     document.getElementById("taskPendingCount").innerHTML=`${pendingTaskCount} Tasks Pending`;
+    //document.getElementById("tasks-container-without-date").innerHTML=`${withoutDateTasksCount} Tasks no date`;
 
     const postCard = document.querySelectorAll("#post");
         postCard.forEach((pCard) =>
@@ -590,7 +590,7 @@ const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
         } catch (error) {
             console.log(error);
         }
-        addDate();
+        //addDate();
         
     });
 
@@ -1056,7 +1056,7 @@ auth.onAuthStateChanged((user) => {
         loginCheck(user);
         setupPosts(true, user.email);
         console.log(user.uid)
-        addDate();
+        //addDate();
         printUserData();
         //console.log(user.providerData)
 

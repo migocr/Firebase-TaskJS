@@ -50,20 +50,27 @@ async function deleteAccount(credential,email,password){
         );
         console.log(credential)
     }
-    
-    
 
+
+    
+    
+    var storageRef = firebase.storage().ref('profile_picture/'+user.uid);
     //const credential = promptForCredentials();
 
-    user.reauthenticateWithCredential(credential).then(() => {
-      // User re-authenticated.
-      user.delete().then(() => {console.log("usuario borrado")}).catch((error) => {console.log("error al borrar")});
+    user.reauthenticateWithCredential(credential).then(async() => {
+        // Delete profile picture
+        await storageRef.delete().then(function() {console.log("imagen borrada");}).catch(function(error) {console.log(error)});
+        //delete user account
+        await user.delete().then(() => {console.log("usuario borrado")}).catch((error) => {console.log("error al borrar")});
+      
     }).catch((error) => {
       // An error ocurred
       // ...
     });
 
 }
+
+
 
 modalNewPassword = document.getElementById("modalNewPassword");
 btnChangePass = document.getElementById("change-password");

@@ -169,14 +169,33 @@
   <div class="card sections">
     <div class="card-header" id="headingThree">
       <h5 class="mb-0 header">
-        <button class="btn btn-link expired" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+        <button class="btn btn-link nodate" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+          Without Date TASKS
+        </button>
+        <p id="taskExpiredCount" class="tasks-count">0 Tasks without date</p>
+      </h5>
+    </div>
+
+    <div id="collapseThree" class="collapse show" aria-labelledby="headingThree" data-parent="#page-content">
+      <div class="card-body accordion">
+       <div class="tasks-container" id="tasks-container-without-date">
+       </div>
+      </div>
+  </div>
+  </div>
+
+
+  <div class="card sections">
+    <div class="card-header" id="headingFour">
+      <h5 class="mb-0 header">
+        <button class="btn btn-link expired" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
           EXPIRED TASKS
         </button>
         <p id="taskExpiredCount" class="tasks-count">0 Tasks expired</p>
       </h5>
     </div>
 
-    <div id="collapseThree" class="collapse show" aria-labelledby="headingThree" data-parent="#page-content">
+    <div id="collapseFour" class="collapse show" aria-labelledby="headingFour" data-parent="#page-content">
       <div class="card-body accordion">
        <div class="tasks-container" id="tasks-container-expired">
        </div>
