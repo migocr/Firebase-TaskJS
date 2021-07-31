@@ -61,20 +61,33 @@ const loginCheck = (user) => {
         registerMenu.style.display = "none";
         loginMenu.style.display = "none";
         tasksContainer.style.display = "inline-block";
-        btnNewTask.style.display = "flex";
+        btnNewTask.style.display = "";
         visitorPage.style.display = "none";
+        logout.className = "bx bx-log-out";
+
+        allTasksMenu.style.display = "";
+        dateMenuSection[0].style.display="";
+        dateMenuSection[1].style.display="";
+        dateMenuSection[2].style.display="";
         //console.log(user.email);
         //allTasksMenu.style.display = "flex";
 
     } else {
-        logoutMenu.style.visibility = "hidden";
+        //logoutMenu.style.visibility = "hidden";
+        logout.className = "bx bx-log-in";
         registerMenu.style.display = "flex";
         loginMenu.style.display = "block";
         //accordionExample.style.display="none";
         btnNewTask.style.display = "none";
         tasksContainer.style.display = "none";
         visitorPage.style.display = "block";
-        //allTasksMenu.style.display = "none";
+        allTasksMenu.style.display = "none";
+        dateMenuSection[0].style.display="none";
+        dateMenuSection[1].style.display="none";
+        dateMenuSection[2].style.display="none";
+        searchSection.style.display="none";
+        document.getElementById("search").style.display="none";
+        accountMenu.style.display="none";
 
     }
 };
@@ -197,12 +210,15 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
     weekday[4] = "Thursday";
     weekday[5] = "Friday";
     weekday[6] = "Saturday";
-    console.log(endDate);
+
+    //console.log(section);
+    //console.log(endDate);
     if (endDate == null) {
         var day = "NA";
         var month ="NA";
         var stringDay = "NA";
         var time = "NA"
+
     } else {
         var stringDay = weekday[endDate.getDay()];
         var month = endDate.toLocaleString('default', { month: 'short' }).toUpperCase(0);
@@ -213,7 +229,7 @@ const printTask = async (taskTitle, taskDescription, i, checked, task_at_time_co
     
 
 
-    section.innerHTML += `<div data-id="${i}" class="card card-body border-left" style="${borderCard}">
+    section.innerHTML += `<div ondragstart="dragStart(event)" ondrag="dragging(event)" draggable="true" data-id="${i}" data-secction="${section.id}" id="task-container" class="card card-body border-left" style="${borderCard}">
             <div class="col-2 text-right">
                 <h1 class="display-4"><span class="badge badge-secondary">${day}</span></h1>
                 <h2>${month}</h2>
@@ -264,6 +280,7 @@ async function setTasks(data,email,section,filter){
     tasksContainerPending.innerHTML = "";
     tasksContainerComplete.innerHTML = "";
     tasksContainerExpired.innerHTML = "";
+    tasksContainerWithoutDate.innerHTML ="";
 
     var tareas = data;
     //console.log(data)
@@ -290,36 +307,52 @@ async function setTasks(data,email,section,filter){
     let withoutDateTasksCount = 0;
 
     for (var i = tareas.length - 1; i >= 0; i--) {
-        let newDate = new Date();
-        let endDate = new Date(tareas[i].date_end);
-        var fechaInicio = new Date(newDate).getTime();
-        var fechaFin = new Date(endDate).getTime();
-        var diff = fechaFin - fechaInicio;
-        var diffDias = diff / (1000 * 60 * 60 * 24);
-        var diffHoras = (diff % (1000 * 60 * 60 * 24) / 3.6e+6);
-        var diffMinutos = (diff % (1000 * 60 * 60 * 24) % 3.6e+6) / 60000;
+        var newDate = new Date();
+        if (tareas[i].date_end == null) {
+           
+            var task_at_time = ("Tarea caduco hace: ");
+            var task_at_time_color = "alert-dark"
+            if (tareas[i].status) {
+                var checked = "checked";
+            } else{
+                var checked = "";
+            }
+            var endDate =null;
+        } else {
+            
+            var endDate = new Date(tareas[i].date_end);
+            var fechaInicio = new Date(newDate).getTime();
+            var fechaFin = new Date(endDate).getTime();
+            var diff = fechaFin - fechaInicio;
+            var diffDias = diff / (1000 * 60 * 60 * 24);
+            var diffHoras = (diff % (1000 * 60 * 60 * 24) / 3.6e+6);
+            var diffMinutos = (diff % (1000 * 60 * 60 * 24) % 3.6e+6) / 60000;
 
 
-        
-        if (newDate > endDate) {
+            if (newDate > endDate) {
             var task_at_time = ("Tarea caduco hace: " + Math.trunc(diffDias) * -1 + " Dias " + Math.trunc(diffHoras) * -1 + " Horas " + Math.trunc(diffMinutos) * -1 + " Minutos");
             var task_at_time_color = "alert-dark"
-        } else if (new Date() == new Date(tareas[i].date_end)) {
-                            //console.log("son iguales")
-        } else {
-            var task_at_time = ("Tiempo restante: " + Math.trunc(diffDias) + " Dias " + Math.trunc(diffHoras) + " Horas " + Math.trunc(diffMinutos) + " Minutos");
-            var task_at_time_color = "alert-success"
+            } else if (new Date() == new Date(tareas[i].date_end)) {
+                                //console.log("son iguales")
+            } else {
+                var task_at_time = ("Tiempo restante: " + Math.trunc(diffDias) + " Dias " + Math.trunc(diffHoras) + " Horas " + Math.trunc(diffMinutos) + " Minutos");
+                var task_at_time_color = "alert-success"
+            }
+            if (tareas[i].status) {
+                var checked = "checked";
+                var task_at_time_color = "alert-primary"
+                //console.log("es true")
+            } else {
+                var checked = "";
+            }
         }
-        if (tareas[i].status) {
-            var checked = "checked";
-            var task_at_time_color = "alert-primary"
-            //console.log("es true")
-        } else {
-            var checked = "";
-        }
+        
+
+    
+        
 
 
-        let taskTitle = tareas[i].title;
+        var taskTitle = tareas[i].title;
         if (taskTitle) {
             taskTitle = taskTitle[0].toUpperCase() + taskTitle.slice(1);
             }
@@ -330,25 +363,29 @@ async function setTasks(data,email,section,filter){
         }
         let taskDescription = tareas[i].description;
         var checkStatus = async() =>{
-            if (endDate >= newDate && !tareas[i].status) {
-                pendingTaskCount++;
-                                //console.log(pendingTaskCount)
-                let borderCard = "border-color: #52c28a!important";
-                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerPending, borderCard,endDate);
-            } else if (tareas[i].status) {
+            if (!tareas[i].status && tareas[i].date_end == null) {
+                withoutDateTasksCount++
+
+                let endDate = null;
+                let borderCard = "border-color: #62656b!important";
+                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerWithoutDate, borderCard,endDate);
+            
+            }else if (tareas[i].status) {
                 completeTaskCount++
                 let borderCard = "border-color: #527ac2!important";
                 printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerComplete, borderCard,endDate);
 
-            } else if (newDate > endDate) {   
+            } else if(!tareas[i].status && endDate >= newDate){
+                pendingTaskCount++;
+                                //console.log(pendingTaskCount)
+                let borderCard = "border-color: #52c28a!important";
+                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerPending, borderCard,endDate);
+            
+            } else if (!tareas[i].status && newDate > endDate  ) {
                 expiredTaskCount++
                 let borderCard = "border-color: #62656b!important";
                 printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerExpired, borderCard,endDate);
-            } else if (endDate == "Invalid Date" || endDate == undefined) {
-                withoutDateTasksCount++
-                let endDate = null;
-                let borderCard = "border-color: #62656b!important";
-                printTask(taskTitle, taskDescription, i, checked, task_at_time_color, task_at_time, tasksContainerWithoutDate, borderCard,endDate);
+            
             }
         }
         var checkWeekOfYear = async (date) => {
@@ -533,7 +570,7 @@ const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
         const buttonUpdateTask = document.querySelectorAll("#buttonUpdate");
         buttonUpdateTask.forEach((btnUpdateTask) => {
         btnUpdateTask.addEventListener("click", async (e) => {
-            //e.preventDefault();
+            e.preventDefault();
             let id = e.target.value;
             let editedTitle = taskFormEdit["task-title"].value;
             let editedDescription = taskFormEdit["task-description"].value;
@@ -580,9 +617,15 @@ const btnsEdit = tasksContainer.querySelectorAll(".btn-edit");
         var title = taskForm["task-title"];
         var description = taskForm["task-description"];
         var date = taskForm["date-end"];
+        if (date.value == "") {
+            fecha = null;
+        } else {
+            fecha = date.value;
+        }
+        console.log(fecha)
 
         try {
-            await saveTask(email, title.value, description.value, date.value);
+            await saveTask(email, title.value, description.value, fecha);
             //await setupPosts(true, email);
             taskForm.reset();
 
@@ -1041,9 +1084,15 @@ const logout = document.querySelector("#log_out");
 
 logout.addEventListener("click", (e) => {
     e.preventDefault();
-    auth.signOut().then(() => {
+    console.log(e.target.className)
+    if (e.target.className == "bx bx-log-in") {
+        modalLogin.style.display="inline-block";
+    } else {
+       auth.signOut().then(() => {
         console.log("signup out");
-    });
+    }); 
+    }
+    
 });
 
 
@@ -1279,6 +1328,76 @@ inputSearch.addEventListener("keyup", async function(e) {
 
 
 
+function dragStart(event) {
+  event.dataTransfer.setData("Text", event.target.id);
+  event.dataTransfer.setData("Origin", event.target.dataset.secction);
+  event.dataTransfer.setData("id", event.target.dataset.id);
+  console.log(event.target.dataset.id)
+ 
+  
+}
 
+function dragging(event) {
+ 
+}
 
+function allowDrop(event) {
+  event.preventDefault();
+  //console.log(event.target);
+}
 
+async function drop(event) {
+    event.preventDefault();
+    var origin = event.dataTransfer.getData("Origin");
+    console.log(origin)
+    var id = event.dataTransfer.getData("id");
+    var currentSection = event.currentTarget.id
+    console.log("moviste de ", origin, " a ", currentSection)
+    //var data = event.dataTransfer.getData("Text");
+    //event.target.appendChild(document.getElementById(data));
+
+    if (currentSection == "complete" && origin !== "tasks-container-complete") {
+        console.log("entra")
+        //marcar como completa la tarea
+        console.log(id)
+        let user = await firebase.auth().currentUser;
+        let email = user.email;
+        var userData = await getUserTasks(email);
+        var tareas = userData.tasks;
+        console.log(tareas)
+
+        tareas.sort(function(a, b) {
+    
+        let adiffTime = new Date(a.date_end) - new Date();
+        let bdiffTime = new Date(b.date_end) - new Date();
+        if (adiffTime > 0) {
+            adiffTime = adiffTime * (-1)
+            }
+        if (bdiffTime > 0) {
+        bdiffTime = bdiffTime * (-1)
+            }
+            //console.log("new " + new Date(b.date_end))
+            //console.log(a.title + " " + diffTime)
+            return (new Date(adiffTime) - new Date(bdiffTime))
+        })
+
+        console.log(tareas)
+        
+        //console.log(tareas[id])
+        tareas[id] = {
+                        title: tareas[id].title,
+                        description: tareas[id].description,
+                        status: !tareas[id].status,
+                        date: tareas[id].date,
+                        date_end: tareas[id].date_end
+                    };
+        await db.collection("users").doc(email).update({
+                        tasks: tareas
+                    })
+                    setupPosts(true,email);
+
+    } 
+    //console.log(data);
+    //console.log(data2)
+  //document.getElementById("demo").innerHTML = "The p element was dropped";
+}

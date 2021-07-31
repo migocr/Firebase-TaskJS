@@ -15,6 +15,8 @@
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- ANIMATE CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css" />
+
+
   <link rel="stylesheet" href="menu.css" />
 
   <link rel="stylesheet" href="index.css" />
@@ -27,7 +29,7 @@
 </head>
 
 <body class="bg-light">
-  <div class="sidebar">
+  <div class="sidebar active">
     <div class="logo_content">
       <div class="logo">
         <div class="logo_name">Task</div>
@@ -44,7 +46,7 @@
           
           
 
-      <li>
+      <li id="search">
           <i class='bx bx-search' ></i>
           <input id="search" type="text" placeholder="Search...">
         <span class="tooltip">Search</span>
@@ -78,17 +80,17 @@
         <span class="tooltip">Tasks for this month</span>
       </li>
       
-      <li>
+      <li id="btnNewTask">
 
-        <a id="btnNewTask" href="#">
+        <a  href="#">
           <i  class='bx bx-list-plus' ></i>
           <span class="links_name">New Task</span>
         </a>
         <span class="tooltip">New Task</span>
       </li>
       
-      <li>
-        <a id="btnAccount" href="#">
+      <li id="btnAccount" >
+        <a href="#">
           <i class='bx bx-user' ></i>
           <span class="links_name">My Account</span>
         </a>
@@ -130,13 +132,21 @@
 
 
 <div class="accordion text" id="page-content">
+  <h1 style="
+    /* margin: 0em .2em .2em .2em; */
+    padding: 0em .6em;
+    font-size: 2em;
+    font-weight: inherit;
+    font-size: x-large!important;
+    color: white;
+">All Tasks</h1>
 
-  <div class="card sections">
+  <div ondrop="drop(event)" ondragover="allowDrop(event)" class="card sections" id="pending" style="float: left;">
     <div class="card-header" id="headingOne">
       <h5 class="mb-0 header">
-        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-          TASKS TO DO 
-        </button>
+        <p class="title-card-section">
+          To do 
+        </p>
         <p id="taskPendingCount" class="tasks-count">0 Tasks pending</p>
       </h5>
     </div>
@@ -148,30 +158,12 @@
   </div>
   </div>
 
-  <div class="card sections">
-    <div class="card-header" id="headingTwo">
-      <h5 class="mb-0 header">
-        <button class="btn btn-link completed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-          COMPLETE TASKS
-        </button>
-        <p  id="taskCompleteCount" class="tasks-count">0 Tasks complete</p>
-      </h5>
-    </div>
-
-    <div id="collapseTwo" class="collapse show" aria-labelledby="headingTwo" data-parent="#page-content">
-      <div class="card-body accordion">
-       <div class="tasks-container" id="tasks-container-complete">
-      </div>
-    </div>
-  </div>
-  </div>
-
-  <div class="card sections">
+  <div ondrop="drop(event)" ondragover="allowDrop(event)" class="card sections" id="no-date" style="float: right;">
     <div class="card-header" id="headingThree">
       <h5 class="mb-0 header">
-        <button class="btn btn-link nodate" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
-          Without Date TASKS
-        </button>
+        <p class="title-card-section">
+          No date
+        </p>
         <p id="taskExpiredCount" class="tasks-count">0 Tasks without date</p>
       </h5>
     </div>
@@ -184,18 +176,38 @@
   </div>
   </div>
 
+  <div ondrop="drop(event)" ondragover="allowDrop(event)" class="card sections" id="complete" style="float: left;">
+    <div class="card-header" id="headingTwo">
+      <h5 class="mb-0 header">
+        <p class="title-card-section"  aria-expanded="true" aria-controls="collapseTwo">
+          Complete
+        </p>
+        <p  id="taskCompleteCount" class="tasks-count">0 Tasks complete</p>
+      </h5>
+    </div>
 
-  <div class="card sections">
+    <div id="collapseTwo" class="collapse show" aria-labelledby="headingTwo" data-parent="#page-content">
+      <div class="card-body accordion">
+       <div class="tasks-container" id="tasks-container-complete">
+      </div>
+    </div>
+  </div>
+  </div>
+
+  
+
+
+  <div ondrop="drop(event)" ondragover="allowDrop(event)" class="card sections" id="expired" style="float: right;">
     <div class="card-header" id="headingFour">
       <h5 class="mb-0 header">
-        <button class="btn btn-link expired" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
-          EXPIRED TASKS
-        </button>
+        <p class="title-card-section" aria-expanded="true">
+          Expired
+        </p>
         <p id="taskExpiredCount" class="tasks-count">0 Tasks expired</p>
       </h5>
     </div>
 
-    <div id="collapseFour" class="collapse show" aria-labelledby="headingFour" data-parent="#page-content">
+    <div  class="collapse show" aria-labelledby="headingFour" data-parent="#page-content">
       <div class="card-body accordion">
        <div class="tasks-container" id="tasks-container-expired">
        </div>
@@ -371,7 +383,7 @@
       <div class="modal-body">
         <form id="task-form">
               <div class="form-group">
-                <input type="text" id="task-title" class="form-control" class="Task Title" placeholder="Task Title"
+                <input type="text" id="task-title" class="form-control" required class="Task Title" placeholder="Task Title"
                   autofocus>
               </div>
               <div class="form-group">

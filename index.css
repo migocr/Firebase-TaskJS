@@ -28,6 +28,7 @@ body{
 .accordion{
   max-width: 100%;
   margin: auto;
+  background: #000000bf;
   
 }
 
@@ -40,13 +41,16 @@ body{
   background-color: transparent;
   border-bottom: none;
 }
-.card.sections{
-      border: none;
+.card.sections {
+    border: none;
     display: inline-block;
     vertical-align: top;
     width: 49%;
-    padding: 5px;
-    min-width: 250px;
+    border-radius: .5em!important;
+    padding: inherit;
+    background: #000000;
+    box-shadow: rgb(255 255 255 / 10%) 0px 0px 5px 0px, rgb(255 255 255 / 10%) 0px 0px 1px 0px;
+    margin: .5%;
 }
 .btn.btn-link{
   background-color:#023357bd;
@@ -62,7 +66,7 @@ body{
   background-color: transparent;
   position: relative;
   height: 40px;
-  padding-left: .8em;
+  padding-left: .2em;
 }
 
 
@@ -74,24 +78,36 @@ body{
   padding:  0px;
   }
 .border-left {
-    border-left: .2em solid #52c28a!important;
-    border-right: .2em solid #52c28a!important;
     margin-bottom: 10px;
+    border: 0px!important;
 }
 
 .tasks-container{
-  background-color: #f8f9fa;
+  background-color: ##f8f9fa;
 }
-.card.card-body.border-left{
-    background: white;
+.card.card-body.border-left {
+    background: #232323;
     display: inline-block;
     float: left;
     width: 100%;
     box-shadow: 0px 2px 4px 1px #00000033;
+    color: white;
 }
 btn.focus, .btn:focus {
     outline: 0;
     box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 0%);
+}
+.title-card-section{
+  border-radius: 0;
+    color: white;
+    text-decoration: none;
+    text-align: left;
+    margin: auto;
+    font-size: inherit;
+    font-weight: 500;
+    display: inline-block;
+    line-height: 1.5;
+    margin: 0px!important;
 }
 
 .btn.btn-link.completed{
@@ -116,15 +132,24 @@ div#collapseOne, div#collapseTwo, div#collapseThree {
   display: none;
 }
 #post h3{
-  font-size: .7em;
-  max-width: 90%;
-  vertical-align: middle;
+      max-width: 90%;
+    vertical-align: middle;
+    font-weight: 400;
+    font-size: .8em;
 }
 
 
 
 
-
+[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Required to make elements draggable in old WebKit */
+  -khtml-user-drag: element;
+  -webkit-user-drag: element;
+}
 
 
 
@@ -176,11 +201,9 @@ div#collapseOne, div#collapseTwo, div#collapseThree {
 }
 
 .tasks-count{
-      float: right;
-    margin: 0px;
-    padding: 10px 0 0 0;
-    position: relative;
-    margin-right: 1em;
+    float: right;
+    
+    color: white;
 }
 
 .drop-zone {
@@ -293,6 +316,7 @@ body {
     padding-left: 0;
     list-style: none;
     font-size: .5em;
+    padding: 0em 2.7em;
 }
 
 .text-right {
